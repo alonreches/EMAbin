@@ -22,7 +22,9 @@ class WikiProblem:
 
     def get_successors(self, article):
         try:
-            return wikipedia.page(article).links
+            links = [l for l in wikipedia.page(article).links if "(disambiguation)" not in l]
+            print ( links)
+            return links
         except Exception as E:
             return []
 
@@ -30,7 +32,10 @@ class WikiProblem:
         raise Exception("Not Implemented! how to find this?")
 
     def get_categories_of_article(self, article):
-        return wikipedia.page(article).categories
+        try:
+            return wikipedia.page(article).categories
+        except wikipedia.exceptions.DisambiguationError as e:
+            return []
 
     def run_dfs(self):
         raise Exception("Not Implemented yet!")

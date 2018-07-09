@@ -81,7 +81,7 @@ def null_heuristic(state, problem=None):
 
 def a_star_search(problem, heuristic=null_heuristic):
     return graph_search(problem,
-                        util.PriorityQueueWithFunction(lambda node: node.path_cost + heuristic(node.state, problem)))
+                        util.PriorityQueueWithFunction(lambda node: node.depth + heuristic(node.state, problem)))
 
 def bfs(problem, heuristic=null_heuristic):
     return graph_search(problem, util.Queue())
@@ -92,13 +92,18 @@ def Meta_Data_heuristic(state, problem=None):
     curr_cats = problem.get_categories_of_article(state)
     target_cats = problem.get_categories_of_article(problem.get_goal_state())
     intersection = list(set(curr_cats) & set(target_cats))
+    shared = len(intersection)
+    f = -(10**shared)
+    if shared == 0:
+        return 0
     if DEBUG:
         print("--------------------------")
         print("now on",state,"with categories: ", curr_cats )
         print("end is",problem.get_goal_state(), "with categories: ",target_cats )
-        print("intersection", intersection , "rank",-len(intersection) )
+        print("intersection", intersection , "shared",len(intersection) )
+        print("returned f(x) = ", f)
 
-    return -len(intersection)
+    return f
 
 
 from sys import argv
