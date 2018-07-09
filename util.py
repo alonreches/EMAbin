@@ -9,7 +9,7 @@
 import sys
 import inspect
 import heapq, random
-
+from WikiSolver import DEBUG
 """
  Data structures useful for implementing SearchAgents
 """
@@ -105,7 +105,10 @@ class PriorityQueueWithFunction(PriorityQueue):
 
     def push(self, item):
         "Adds an item to the queue with priority from the priority function"
-        PriorityQueue.push(self, item, self.priorityFunction(item))
+        priority = self.priorityFunction(item)
+        if DEBUG:
+            print("pushing %s %d" % (item, priority))
+        PriorityQueue.push(self, item, priority)
 
 
 def manhattanDistance(xy1, xy2):

@@ -76,16 +76,42 @@ def graph_search(problem, fringe):
 
 
 def null_heuristic(state, problem=None):
-    if state == "Machine" or state == "Engine":
-        return 1
-    else:
-        return 100
+        return 0
 
 
 def a_star_search(problem, heuristic=null_heuristic):
     return graph_search(problem,
                         util.PriorityQueueWithFunction(lambda node: node.path_cost + heuristic(node.state, problem)))
 
+def bfs(problem, heuristic=null_heuristic):
+    return graph_search(problem, util.Queue())
+
+########################################### NMP^ ########################
+
+def Meta_Data_heuristic(state, problem=None):
+    curr_cats = problem.get_categories_of_article(state)
+    target_cats = problem.get_categories_of_article(problem.get_goal_state())
+    intersection = list(set(curr_cats) & set(target_cats))
+    if DEBUG:
+        print("--------------------------")
+        print("now on",state,"with categories: ", curr_cats )
+        print("end is",problem.get_goal_state(), "with categories: ",target_cats )
+        print("intersection", intersection , "rank",-len(intersection) )
+
+    return -len(intersection)
+
+
+from sys import argv
+DEBUG = False
+if len(argv) > 1 and argv[1] == "debug":
+    DEBUG = True
+
+
+START="Cowling"
+END="Machine"
+HEURISTIC= Meta_Data_heuristic
+
+
 if __name__ == "__main__":
-    problem = WikiProblem("Cowling", "Machine")
-    print(a_star_search(problem=problem))
+    problem = WikiProblem(START, END)
+    print(a_star_search(problem=problem, heuristic=HEURISTIC))
