@@ -4,10 +4,9 @@ import util
 
 
 class Node:
-    def __init__(self, state, parent=None, action=None, path_cost=0):
+    def __init__(self, state, parent=None, path_cost=0):
         self.state = state
         self.parent = parent
-        self.action = action
         if parent:
             self.path_cost = parent.path_cost + path_cost
             self.depth = parent.depth + 1
@@ -18,7 +17,7 @@ class Node:
     def __repr__(self):
         return '<Node %s>' % (self.state,)
 
-    def nodePath(self):
+    def node_path(self):
         x, result = self, [self]
         while x.parent:
             result.append(x.parent)
@@ -38,7 +37,7 @@ class Node:
         return actions
 
     def expand(self, problem):
-        return [Node(next, self) for next in problem.get_successors(self.state)]
+        return [Node(next, parent=self) for next in problem.get_successors(self.state)]
 
 
 REVERSE_PUSH = False
@@ -56,7 +55,7 @@ def graph_search(problem, fringe):
     while not fringe.isEmpty():
         node = fringe.pop()
         if problem.is_goal_state(node.state):
-            return node.path()
+            return node.node_path()
         try:
             in_visited = node.state in visited
         except:
@@ -77,7 +76,10 @@ def graph_search(problem, fringe):
 
 
 def null_heuristic(state, problem=None):
-    return 0
+    if state == "Machine" or state == "Engine":
+        return 1
+    else:
+        return 100
 
 
 def a_star_search(problem, heuristic=null_heuristic):
@@ -85,5 +87,5 @@ def a_star_search(problem, heuristic=null_heuristic):
                         util.PriorityQueueWithFunction(lambda node: node.path_cost + heuristic(node.state, problem)))
 
 if __name__ == "__main__":
-    problem = WikiProblem("Cherry", "Fruit")
+    problem = WikiProblem("Cowling", "Machine")
     print(a_star_search(problem=problem))

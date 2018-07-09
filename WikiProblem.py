@@ -14,7 +14,9 @@ class WikiProblem:
 
     def is_goal_state(self, article):
         try:
-            return wikipedia.page(article).title == self.goal_state.title
+            a = wikipedia.page(article).title
+            b = self.goal_state.title
+            return a == b
         except Exception as E:
             return False
 
