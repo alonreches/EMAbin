@@ -15,7 +15,7 @@ class Node:
             self.depth = 0
 
     def __repr__(self):
-        return '<Node %s>' % (self.state,)
+        return '<Node %s>' % (self.state.title,)
 
     def node_path(self):
         x, result = self, [self]
@@ -54,6 +54,7 @@ def graph_search(problem, fringe):
 
     while not fringe.isEmpty():
         node = fringe.pop()
+        print("poped:", node.state.title, "parent:", node.parent)
         if problem.is_goal_state(node.state):
             return node.node_path()
         try:
@@ -76,15 +77,17 @@ def graph_search(problem, fringe):
 
 
 def null_heuristic(state, problem=None):
-        return 0
+    return 0
 
 
 def a_star_search(problem, heuristic=null_heuristic):
     return graph_search(problem,
                         util.PriorityQueueWithFunction(lambda node: node.depth + heuristic(node.state, problem)))
 
+
 def bfs(problem, heuristic=null_heuristic):
     return graph_search(problem, util.Queue())
+
 
 ########################################### NMP^ ########################
 
@@ -107,16 +110,14 @@ def Meta_Data_heuristic(state, problem=None):
 
 
 from sys import argv
+
 DEBUG = False
 if len(argv) > 1 and argv[1] == "debug":
     DEBUG = True
 
-
-START="Cowling"
-END="Machine"
-HEURISTIC= Meta_Data_heuristic
-
+START = "Shark Tank"
+END = "Exploding animal"
 
 if __name__ == "__main__":
     problem = WikiProblem(START, END)
-    print(a_star_search(problem=problem, heuristic=HEURISTIC))
+    print(bfs(problem=problem))

@@ -1,4 +1,11 @@
-import wikipedia
+import time
+import itertools
+from improved_wikipedia import wikipedia
+from multiprocessing.pool import ThreadPool
+from bs4 import BeautifulSoup as bs
+import requests
+
+WIKIPEDIA_QUERY_LIMIT = 50
 
 
 class WikiProblem:
@@ -7,35 +14,51 @@ class WikiProblem:
         self.goal_state = wikipedia.page(goal_state)
 
     def get_start_state(self):
-        return self.start_state.title
+        return self.start_state
 
     def get_goal_state(self):
-        return self.goal_state.title
+        return self.goal_state
 
     def is_goal_state(self, article):
-        try:
-            a = wikipedia.page(article).title
-            b = self.goal_state.title
-            return a == b
-        except Exception as E:
-            return False
+        return article == self.goal_state
 
     def get_successors(self, article):
-        try:
-            links = [l for l in wikipedia.page(article).links if "(disambiguation)" not in l]
-            print ( links)
-            return links
-        except Exception as E:
-            return []
+        return self._get_pages(self._divide_to_chunks(article.links))
 
-    def get_predecessor(self):
-        raise Exception("Not Implemented! how to find this?")
+    def get_predecessors(self, article):
+        url = 'http://en.wikipedia.org/w/index.php?title=Special%3AWhatLinksHere&limit=500&target=' + article.title + '&namespace=0'
+        http_response = requests.get(url)
+        soup = bs(http_response.content, 'lxml')
+        ul = soup.find_all('ul', id="mw-whatlinkshere-list")
+        a_tags = ul[0].find_all('a')
+        names = [x.contents for x in a_tags[::3]]
+        return self._get_pages(self._divide_to_chunks(names))
 
     def get_categories_of_article(self, article):
-        try:
-            return wikipedia.page(article).categories
-        except wikipedia.exceptions.DisambiguationError as e:
-            return []
+        return article.categories
 
-    def run_dfs(self):
-        raise Exception("Not Implemented yet!")
+    def _get_pages(self, links):
+        pool = ThreadPool(processes=1)
+        threads = []
+        wikipages = []
+        for chunk in links:
+            async_result = pool.apply_async(self._get_chunk_of_pages, (chunk,))
+            threads.append(async_result)
+        for thread in threads:
+            wikipages.extend(thread.get())
+        return wikipages
+
+    def _get_chunk_of_pages(self, article_names):
+        pages = wikipedia.pages(article_names)
+        print("\t", "requested:", len(article_names), "got:", len(pages))
+        return pages
+
+    @staticmethod
+    def _divide_to_chunks(iterable):
+        chunks = []
+        counter = len(iterable)
+        while counter > 0:
+            start = max(0, counter - WIKIPEDIA_QUERY_LIMIT)
+            chunks.append(iterable[start:counter])
+            counter -= WIKIPEDIA_QUERY_LIMIT
+        return chunks
