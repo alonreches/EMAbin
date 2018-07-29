@@ -1,6 +1,7 @@
 # TODO: don't make it look like yoni's solution
 from WikiProblem import WikiProblem
 import util
+from sql_offline_queries import *
 
 
 class Node:
@@ -119,5 +120,8 @@ START = "Shark Tank"
 END = "Exploding animal"
 
 if __name__ == "__main__":
-    problem = WikiProblem(START, END)
-    print(bfs(problem=problem))
+
+    #problem = WikiProblem(START, END)
+    #print(a_star_search(problem=problem, heuristic=HEURISTIC))
+    problem = OfflineWikiProblem(START, END)
+    print(bfs(problem))
