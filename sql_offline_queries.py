@@ -63,10 +63,10 @@ class OfflineArticle:
         self.is_redirection = row_from_db[2]
 
     def __str__(self):
-        return self.title
+        return self.title.replace("_"," ")
 
     def __repr__(self):
-        return self.title
+        return self.title.replace("_"," ")
 
     def __eq__(self, other):
         return self.id == other.id
@@ -78,11 +78,20 @@ class OfflineWikiProblem:
         self.cursor = self.db_connection.cursor()
         self.is_db = True
 
-        src0 = "select * from pages where title = '" + start_state + "' "
-        dest0 = "select * from pages where title = '" + goal_state + "' "
+        src0 = "select * from pages where title = '" + start_state.replace(" ","_") + "' "
+        dest0 = "select * from pages where title = '" + goal_state.replace(" ","_") + "' "
 
-        self.start_state = pull_articles(self.cursor, src0)[0]
-        self.goal_state = pull_articles(self.cursor, dest0)[0]
+        self.start_state = pull_articles(self.cursor, src0)
+        self.goal_state = pull_articles(self.cursor, dest0)
+
+        if not self.start_state:
+            raise Exception('start article is not on the db')
+
+        if not self.goal_state:
+            raise Exception('goal article is not on the db')
+
+        self.start_state = self.start_state[0]
+        self.goal_state = self.goal_state[0]
 
     def get_start_state(self):
         return self.start_state
