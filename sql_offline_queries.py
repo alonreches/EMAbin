@@ -68,6 +68,9 @@ class OfflineArticle:
     def __repr__(self):
         return self.title
 
+    def __eq__(self, other):
+        return self.id == other.id
+
 #support A* API
 class OfflineWikiProblem:
     def __init__(self, start_state, goal_state):
