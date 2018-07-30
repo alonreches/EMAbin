@@ -18,6 +18,9 @@ class Node:
     def __repr__(self):
         return '<Node %s>' % (self.state.title,)
 
+    def __eq__(self, other):
+        return self.id == other.id
+
     def node_path(self):
         x, result = self, [self]
         while x.parent:
