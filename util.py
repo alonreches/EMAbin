@@ -10,6 +10,7 @@ import sys
 import inspect
 import heapq, random
 from WikiSolver import DEBUG
+
 """
  Data structures useful for implementing SearchAgents
 """
@@ -88,6 +89,9 @@ class PriorityQueue:
 
     def isEmpty(self):
         return len(self.heap) == 0
+
+    def intersect(self, another_queue):
+        return set([x[1] for x in another_queue.heap]).intersection(set([x[1] for x in self.heap]))
 
 
 class PriorityQueueWithFunction(PriorityQueue):

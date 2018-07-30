@@ -334,14 +334,21 @@ class WikipediaPage(object):
         return stdout_encode(u'<WikipediaPage \'{}\'>'.format(self.title))
 
     def __eq__(self, other):
-        try:
-            return (
-                self.pageid == other.pageid
-                and self.title == other.title
-                and self.url == other.url
-            )
-        except:
-            return False
+        return other.__key() == self.__key()
+        # try:
+        #     return (
+        #         self.pageid == other.pageid
+        #         and self.title == other.title
+        #         and self.url == other.url
+        #     )
+        # except:
+        #     return False
+
+    def __key(self):
+        return self.pageid, self.title, self.url
+
+    def __hash__(self):
+        return hash(self.__key())
 
     def __load(self, redirect=True, preload=False, content=None):
         '''

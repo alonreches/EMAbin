@@ -10,6 +10,8 @@ WIKIPEDIA_QUERY_LIMIT = 50
 
 class WikiProblem:
     def __init__(self, start_state, goal_state):
+        self.get_successors_count = 0
+        self.get_predecessors_count = 0
         self.start_state = wikipedia.page(start_state)
         self.goal_state = wikipedia.page(goal_state)
 
@@ -23,15 +25,17 @@ class WikiProblem:
         return article == self.goal_state
 
     def get_successors(self, article):
+        self.get_successors_count += 1
         return self._get_pages(self._divide_to_chunks(article.links))
 
     def get_predecessors(self, article):
+        self.get_predecessors_count += 1
         url = 'http://en.wikipedia.org/w/index.php?title=Special%3AWhatLinksHere&limit=500&target=' + article.title + '&namespace=0'
         http_response = requests.get(url)
         soup = bs(http_response.content, 'lxml')
         ul = soup.find_all('ul', id="mw-whatlinkshere-list")
         a_tags = ul[0].find_all('a')
-        names = [x.contents for x in a_tags[::3]]
+        names = [x.contents[0] for x in a_tags[::3]]
         return self._get_pages(self._divide_to_chunks(names))
 
     def get_categories_of_article(self, article):
