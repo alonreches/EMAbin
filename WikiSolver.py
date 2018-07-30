@@ -110,6 +110,12 @@ def Meta_Data_heuristic(state, problem=None):
 
     return f
 
+def splitter_rank_heuristic(state, problem=None):
+    return -problem.splitter_rank(state)/ problem.splitter_rank(state.parent)
+
+def merger_rank_heuristic(state, problem=None):
+    -problem.merger_rank(state) / problem.splitter_rank(state.parent)
+
 
 from sys import argv
 

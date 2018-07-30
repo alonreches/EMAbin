@@ -145,6 +145,23 @@ class OfflineWikiProblem:
     def run_dfs(self):
         raise Exception("Not Implemented yet!")
 
+    def splitter_rank(self, article):
+        out_linkes_count = pull_rows(self.cursor, "select outgoing_links_count from links where id = "+ str(article.id))[0][0]
+        return out_linkes_count
+
+    def merger_rank(self, article):
+        out_linkes_count = pull_rows(self.cursor, "select incoming_links_count from links where id = " + str(article.id))[0][0]
+        return out_linkes_count
+
+    def select_name_by_id(self, id_list):
+        printQ(self.cursor, 'select * from pages where id in (' + id_list + ')', 200, 30)
+
+    def select_id_by_name(self, names_list):
+        printQ(self.cursor, 'select * from pages where title in (' + names_list + ')', 200, 20)
+
+    def select_general_query(self, query):
+        printQ(self.cursor, query, 20, 20)
+
 #debug test
 def sql_test():
     src_article = "Abraham_Lincoln"
@@ -152,6 +169,11 @@ def sql_test():
 
     OWG = OfflineWikiProblem(src_article, dest_article)
     print('src, dest :',OWG.start_state,OWG.goal_state)
+    print('src splitter_rank=',OWG.splitter_rank(OWG.start_state) )
+    print('dest merger_rank=', OWG.merger_rank(OWG.goal_state))
+
+    #printQ(OWG.cursor, 'select * from pages where title in ("Abraham_Lincoln", "Autism")', 7, 25)
+
 
     succs = OWG.get_successors(OWG.start_state)
     print ("successors:")
@@ -161,18 +183,31 @@ def sql_test():
     print ("predecessor:")
     print(pred)
 
+def sql_explore():
+    src_article = "Abraham_Lincoln"
+    dest_article = "Autism"
+
+    OWG = OfflineWikiProblem(src_article, dest_article)
+    printQ(OWG.cursor, "select * from links where outgoing_links_count between 10 and 20 and  incoming_links_count between 10 and 20 ", 100, 25)
+    OWG.select_name_by_id("7449,7598,10478,13665,18728,23661,24182,32717,39719,40911,40919,41449,41455,41482,41719,41810,42683,42877,43232,44853,44855,44869,47106,47514,49669,51844,53555,53893,55502,55517,58552,60962,60994,66258,66267,68381,68544,68570,69148,70765,70933,71091,72550,74527,75271,76233,77541,77731,77957,78156,78755,79344,79868,80594,83179,83771,84647,84682,87332,92015,94833,95919,96396,105800,118591,141470,141597,142521,143687,143711,144270,144273,144485,144510,145734,146841,147485,147550,149478,152551,152983,153241,156878,159106,163060,171101,173205,173392,177540,178727,179373,182003,183501,186050,186963,188550,189618,191937,192165,193598")
+
+    printQ(OWG.cursor, "select avg(incoming_links_count), min(incoming_links_count), max(incoming_links_count) , avg(outgoing_links_count), min(outgoing_links_count), max(outgoing_links_count) from links ", 50, 25)
+
 #sql_test()
+sql_explore()
+
+
+
 
 #########################query junk#####################################################################
-'''conn = sqlite3.connect(DB_PATH)
+'''
+conn = sqlite3.connect(DB_PATH)
 c = conn.cursor()
-
 
 rdirect = c.execute(r"select * from redirects ")
 #printQ(c, 7, 15)
 
-links = c.execute(r"select * from links ")
-#printQ(c, 7, 15)
+
 
 
 src_article = "Abraham_Lincoln"
