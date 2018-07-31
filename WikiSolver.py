@@ -1,8 +1,9 @@
 # TODO: don't make it look like yoni's solution
+from optparse import OptionParser
 from WikiProblem import WikiProblem
 import util
 from sql_offline_queries import *
-
+import time
 
 class Node:
     def __init__(self, state, parent=None, path_cost=0, backwards=False):
@@ -92,10 +93,13 @@ def null_heuristic(state, problem=None):
     return 0
 
 
-def a_star_search(problem, heuristic=null_heuristic):
-    generator = graph_search(problem,
-                             util.PriorityQueueWithFunction(lambda node: node.depth + heuristic(node.state, problem)))
-    return next(generator)
+def a_star_search(problem_forward, problem_backward=None, heuristic_forward=null_heuristic,
+                         heuristic_backward=None):
+    generator = graph_search(problem_forward,
+                             util.PriorityQueueWithFunction(lambda node: node.depth + heuristic_forward(node.state,
+                                                                                                        problem_forward)))
+    path = next(generator)
+    return path, [], problem_forward.get_successors_count, -1
 
 
 def bfs(problem, heuristic=null_heuristic):
@@ -143,7 +147,8 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
     back_path.reverse()
     print("successors_count", problem_forward.get_successors_count)
     print("predecessors_count", problem_backward.get_predecessors_count)
-    return forward_intersection.node_path() + back_path[1::]
+    return forward_intersection.node_path(), back_path,\
+           problem_forward.get_successors_count, problem_backward.get_predecessors_count
 
 
 ########################################### NMP^ ########################
@@ -198,6 +203,17 @@ START = "Lion Express"
 END = "Phinney"
 
 
+def run(start, end, algo, forward_heu, backward_heu):
+    problem_forward = OfflineWikiProblem(start, end)
+    problem_backward = OfflineWikiProblem(end, start)
+    start = time.time()
+    fpath, bpath,  fopen, bopen = algo(problem_forward=problem_forward,
+                                       problem_backward=problem_backward,
+                                       heuristic_forward=forward_heu,
+                                       heuristic_backward=backward_heu)
+    total_time = time.time() - start
+    return fpath, bpath, fopen, bopen, total_time
+
 if __name__ == "__main__":
     problem_forward = OfflineWikiProblem(START, END)
     problem_backward = OfflineWikiProblem(END, START)
@@ -216,3 +232,54 @@ if __name__ == "__main__":
     # print(a_star_search(problem=problem, heuristic=HEURISTIC))
     # problem = OfflineWikiProblem(START, END)
     # print(bfs(problem))
+
+
+# TODO: use this for writing the execution from cmd line
+# def main():
+#
+#     usage = """EMA BIN LOVES YOU"""
+#     parser = OptionParser(usage)
+#
+#     parser.add_option('-s', '--start', dest='start',
+#                       help='start article')
+#
+#     parser.add_option('-e', '--end', dest='end',
+#                       help='end article')
+#
+#     parser.add_option('-db', '--db', dest='db',
+#                       help='from where to get the data',
+#                       default='db')
+#
+#     parser.add_option('-db', '--db', dest='db',
+#                       help='from where to get the data',
+#                       default='db')
+#
+#     parser.add_option('-a', '--algorithm', dest='algorithm',
+#                       help='algorithm',
+#                       default='bidirectional_a_star')
+#
+#     parser.add_option('-fh', '--forward_heuristic', dest='forward_heuristic',
+#                       help='forward heuristic',
+#                       default='splitter_rank_heuristic')
+#
+#     parser.add_option('-bh', '--backward_heuristic', dest='backward_heuristic',
+#                       help='backward heuristic',
+#                       default='merger_rank_heuristic')
+#     options = parser.parse_args()
+#
+#     forward_heuristic = getattr()
+#
+#     if options.db == "db":
+#         problem = OfflineWikiProblem
+#
+#     elif options.db == "online":
+#         problem = WikiProblem
+#
+#     if options.algorithm == "bidirectional":
+#         algorithm = bidirectional_a_star
+#         start_to_end = problem(options.start, options.end)
+#         end_to_start = problem(options.end, options.start)
+#
+#     elif options.algorithm == "a_star":
+#         algorithm = a_star_search
+#         start_to_end = problem(options.start, options.end)
