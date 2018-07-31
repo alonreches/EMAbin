@@ -4,6 +4,7 @@ from WikiProblem import WikiProblem
 import util
 from sql_offline_queries import *
 import time
+from executor import DEBUG
 
 class Node:
     def __init__(self, state, parent=None, path_cost=0, backwards=False):
@@ -67,7 +68,8 @@ def graph_search(problem, fringe, generator=False, backwards=False):
         if generator:
             yield fringe
         node = fringe.pop()
-        print("popped:", node.state.title, "parent:", node.parent)
+        if DEBUG:
+            print("popped:", node.state.title, "parent:", node.parent)
         if problem.is_goal_state(node.state):
             return node.node_path()
         try:
@@ -145,8 +147,9 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
             backward_intersection = node
     back_path = backward_intersection.node_path()
     back_path.reverse()
-    print("successors_count", problem_forward.get_successors_count)
-    print("predecessors_count", problem_backward.get_predecessors_count)
+    if DEBUG:
+        print("successors_count", problem_forward.get_successors_count)
+        print("predecessors_count", problem_backward.get_predecessors_count)
     return forward_intersection.node_path(), back_path,\
            problem_forward.get_successors_count, problem_backward.get_predecessors_count
 
@@ -177,7 +180,7 @@ def splitter_rank_heuristic(state, problem=None):
     if denominator == 0 or denominator > 500:
         return 500000 #TODO: deal with it correctly
     # print("splitter - numerator", numerator, "denominator", denominator)
-    if state.parent is not None:
+    if state.parent is not None and DEBUG:
         print(" --> ".join([x.state.title for x in state.node_path()]))
     return numerator / denominator
 
@@ -188,16 +191,11 @@ def merger_rank_heuristic(state, problem=None):
     if denominator == 0 or denominator > 800:
         return 500000 #TODO: deal with it correctly
     # print("merger - numerator", state, numerator, "denominator", denominator, "depth", state.depth)
-    if state.parent is not None:
+    if state.parent is not None and DEBUG:
         print(" <-- ".join([x.state.title for x in state.node_path()]))
     return numerator / denominator
 
 
-from sys import argv
-
-DEBUG = False
-if len(argv) > 1 and argv[1] == "debug":
-    DEBUG = True
 
 START = "Lion Express"
 END = "Phinney"
@@ -212,7 +210,7 @@ def run(start, end, algo, forward_heu, backward_heu):
                                        heuristic_forward=forward_heu,
                                        heuristic_backward=backward_heu)
     total_time = time.time() - start
-    return fpath, bpath, fopen, bopen, total_time
+    return [x.state.title for x in fpath], [x.state.title for x in bpath], fopen, bopen, total_time, len(fpath)+len(bpath)-1
 
 if __name__ == "__main__":
     problem_forward = OfflineWikiProblem(START, END)

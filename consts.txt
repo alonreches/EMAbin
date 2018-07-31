@@ -1,0 +1,3 @@
+.open "W:\\CS\\AI\\final project\\sdow.sqlite.db"
+
+select * from links natural join

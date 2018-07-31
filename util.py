@@ -9,7 +9,7 @@
 import sys
 import inspect
 import heapq, random
-from WikiSolver import DEBUG
+from executor import DEBUG
 
 """
  Data structures useful for implementing SearchAgents

@@ -52,7 +52,8 @@ def pull_rows(cursor,query,rownum = 1):
     return result
 
 #TODO: fix this to a const location
-DB_PATH = r'C:\Users\alon\Desktop\HUJI\3rdYear\AI\Project\sdow.sqlite'
+DB_PATH = r'W:\CS\AI\final project\sdow.sqlite.db'
+#DB_PATH = r'C:\Users\alon\Desktop\HUJI\3rdYear\AI\Project\sdow.sqlite'
 ########################################################################
 
 #encapsulate Article object. keep its id and make a nice & simple print
@@ -197,8 +198,11 @@ def sql_explore():
     printQ(OWG.cursor, "select avg(incoming_links_count), min(incoming_links_count), max(incoming_links_count) , avg(outgoing_links_count), min(outgoing_links_count), max(outgoing_links_count) from links ", 50, 25)
 
 if __name__ == "__main__":
+
     #sql_test()
-    sql_explore()
+    #sql_explore()
+
+    pass
 
 
 
@@ -227,6 +231,6 @@ assist = "select id, outgoing_links from links natural join ("+src0+")"
 assist = "select links.id, outgoing_links, pages.id from links left join pages on links.outgoing_links like pages.id"
 #assist = 'select * from pages where id in (25,39,290,307)'
 #assist = "select id from pages where id in()"
-printQ(c,assist, 7, 20)
-'''
+printQ(c,assist, 7, 20)'''
+
 ##################################################################################################
