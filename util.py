@@ -111,7 +111,7 @@ class PriorityQueueWithFunction(PriorityQueue):
         "Adds an item to the queue with priority from the priority function"
         priority = self.priorityFunction(item)
         if DEBUG:
-            print("pushing %s %d" % (item, priority))
+            print("pushing %s %s" % (item, priority))
         PriorityQueue.push(self, item, priority)
 
 

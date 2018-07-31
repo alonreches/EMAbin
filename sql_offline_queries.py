@@ -52,7 +52,7 @@ def pull_rows(cursor,query,rownum = 1):
     return result
 
 #TODO: fix this to a const location
-DB_PATH = r'W:\CS\AI\final project\sdow.sqlite.db'
+DB_PATH = r'C:\Users\alon\Desktop\HUJI\3rdYear\AI\Project\sdow.sqlite'
 ########################################################################
 
 #encapsulate Article object. keep its id and make a nice & simple print
@@ -71,9 +71,14 @@ class OfflineArticle:
     def __eq__(self, other):
         return self.id == other.id
 
+    def __hash__(self):
+        return hash(int(self.id))
+
 #support A* API
 class OfflineWikiProblem:
     def __init__(self, start_state, goal_state):
+        self.get_successors_count = 0
+        self.get_predecessors_count = 0
         self.db_connection = sqlite3.connect(DB_PATH)
         self.cursor = self.db_connection.cursor()
         self.is_db = True
@@ -113,6 +118,7 @@ class OfflineWikiProblem:
 
     #we may need to update this to include redirections as well
     def get_successors(self, article):
+        self.get_successors_count+= 1
         if not self.is_db:
             raise Exception('db is off')
 
@@ -125,8 +131,8 @@ class OfflineWikiProblem:
         #printQ(self.cursor, query, 20, 20)
         return pull_articles(self.cursor, query, 0)
 
-
-    def get_predecessor(self, article):
+    def get_predecessors(self, article):
+        self.get_predecessors_count += 1
         if not self.is_db:
             raise Exception('db is off')
 
@@ -141,9 +147,6 @@ class OfflineWikiProblem:
 
     def get_categories_of_article(self, article):
         raise Exception("Not Implemented! how to find this?")
-
-    def run_dfs(self):
-        raise Exception("Not Implemented yet!")
 
     def splitter_rank(self, article):
         out_linkes_count = pull_rows(self.cursor, "select outgoing_links_count from links where id = "+ str(article.id))[0][0]
@@ -193,8 +196,9 @@ def sql_explore():
 
     printQ(OWG.cursor, "select avg(incoming_links_count), min(incoming_links_count), max(incoming_links_count) , avg(outgoing_links_count), min(outgoing_links_count), max(outgoing_links_count) from links ", 50, 25)
 
-#sql_test()
-sql_explore()
+if __name__ == "__main__":
+    #sql_test()
+    sql_explore()
 
 
 

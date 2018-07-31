@@ -19,7 +19,6 @@ class Node:
     def __repr__(self):
         return '<Node %s>' % (self.state.title,)
 
-
     def node_path(self):
         x, result = self, [self]
         while x.parent:
@@ -49,6 +48,7 @@ class Node:
 
     def __eq__(self, other):
         return other.state == self.state
+
 
 REVERSE_PUSH = False
 
@@ -93,8 +93,9 @@ def null_heuristic(state, problem=None):
 
 
 def a_star_search(problem, heuristic=null_heuristic):
-    return graph_search(problem,
-                        util.PriorityQueueWithFunction(lambda node: node.depth + heuristic(node.state, problem)))
+    generator = graph_search(problem,
+                             util.PriorityQueueWithFunction(lambda node: node.depth + heuristic(node.state, problem)))
+    return next(generator)
 
 
 def bfs(problem, heuristic=null_heuristic):
@@ -102,18 +103,19 @@ def bfs(problem, heuristic=null_heuristic):
 
 
 # TODO: Maybe consider shortcuts found along the way
+# TODO: rewrite nicely this function
 def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=null_heuristic,
                          heuristic_backward=null_heuristic):
     forward_generator = graph_search(problem_forward,
-                                  util.PriorityQueueWithFunction(
-                                      lambda node: node.depth + heuristic_forward(node.state, problem_forward)),
-                                  generator=True,
-                                  backwards=False)
+                                     util.PriorityQueueWithFunction(
+                                         lambda node: heuristic_forward(node, problem_forward)),
+                                     generator=True,
+                                     backwards=False)
     backward_generator = graph_search(problem_backward,
-                                   util.PriorityQueueWithFunction(
-                                       lambda node: node.depth + heuristic_backward(node.state, problem_backward)),
-                                   generator=True,
-                                   backwards=True)
+                                      util.PriorityQueueWithFunction(
+                                          lambda node: heuristic_backward(node, problem_backward)),
+                                      generator=True,
+                                      backwards=True)
     fringe_backward = next(backward_generator)
     fringe_forward = next(forward_generator)
     intersection = fringe_forward.intersect(fringe_backward)
@@ -126,24 +128,22 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
         fringe_forward = next(forward_generator)
         intersection = fringe_forward.intersect(fringe_backward)
 
-    intersecting_node = intersection.pop()
+    intersecting_node = min(list(intersection), key=lambda x: x.depth)
+    forward_intersection = Node(state=0)
+    backward_intersection = Node(state=0)
+    forward_intersection.depth = 500000
+    backward_intersection.depth = 500000
     for _, node in fringe_forward.heap:
-        if node == intersecting_node:
+        if node == intersecting_node and node.depth < forward_intersection.depth:
             forward_intersection = node
-            break
-    else:
-        raise Exception("a bug!")
     for _, node in fringe_backward.heap:
-        if node == intersecting_node:
+        if node == intersecting_node and node.depth < backward_intersection.depth:
             backward_intersection = node
-            break
-    else:
-        raise Exception("a bug!")
     back_path = backward_intersection.node_path()
     back_path.reverse()
     print("successors_count", problem_forward.get_successors_count)
     print("predecessors_count", problem_backward.get_predecessors_count)
-    return forward_intersection.node_path()+back_path[1::]
+    return forward_intersection.node_path() + back_path[1::]
 
 
 ########################################### NMP^ ########################
@@ -165,11 +165,27 @@ def Meta_Data_heuristic(state, problem=None):
 
     return f
 
+
 def splitter_rank_heuristic(state, problem=None):
-    return -problem.splitter_rank(state)/ problem.splitter_rank(state.parent)
+    numerator = 1 if state.parent is None else problem.splitter_rank(state.parent.state)
+    denominator = problem.splitter_rank(state.state)
+    if denominator == 0 or denominator > 500:
+        return 500000 #TODO: deal with it correctly
+    # print("splitter - numerator", numerator, "denominator", denominator)
+    if state.parent is not None:
+        print(" --> ".join([x.state.title for x in state.node_path()]))
+    return numerator / denominator
+
 
 def merger_rank_heuristic(state, problem=None):
-    -problem.merger_rank(state) / problem.splitter_rank(state.parent)
+    numerator = 1 if state.parent is None else problem.merger_rank(state.parent.state)
+    denominator = problem.merger_rank(state.state)
+    if denominator == 0 or denominator > 800:
+        return 500000 #TODO: deal with it correctly
+    # print("merger - numerator", state, numerator, "denominator", denominator, "depth", state.depth)
+    if state.parent is not None:
+        print(" <-- ".join([x.state.title for x in state.node_path()]))
+    return numerator / denominator
 
 
 from sys import argv
@@ -178,16 +194,24 @@ DEBUG = False
 if len(argv) > 1 and argv[1] == "debug":
     DEBUG = True
 
+START = "Lion Express"
+END = "Phinney"
 
-
-START = "Shark Tank"
-END = "Exploding animal"
 
 if __name__ == "__main__":
-    problem_forward = WikiProblem(START, END)
-    problem_backward = WikiProblem(END, START)
+    problem_forward = OfflineWikiProblem(START, END)
+    problem_backward = OfflineWikiProblem(END, START)
     print(bidirectional_a_star(problem_forward=problem_forward,
-                               problem_backward=problem_backward))
+                               problem_backward=problem_backward,
+                               heuristic_forward=splitter_rank_heuristic,
+                               heuristic_backward=merger_rank_heuristic))
+
+    # print(bidirectional_a_star(problem_forward=problem_forward,
+    #                            problem_backward=problem_backward,
+    #                            heuristic_forward=lambda n, p: n.depth,
+    #                            heuristic_backward=lambda n, p: n.depth))
+
+    # print(a_star_search(problem=problem_forward))
 
     # print(a_star_search(problem=problem, heuristic=HEURISTIC))
     # problem = OfflineWikiProblem(START, END)
