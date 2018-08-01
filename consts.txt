@@ -4,4 +4,4 @@ select name, outg, inc from (select title as name , outgoing_links_count as outg
 
 select name, outg, inc from (select title as name , outgoing_links_count as outg, incoming_links_count as inc from links natural join pages) where outg > 400 and inc between 5 and 60 and name not like 'List_of%' limit 1000;
 
-select name, outg, inc from (select title as name , outgoing_links_count as outg, incoming_links_count as inc from links natural join pages) where outg < 15 and inc < 15 limit 1000;
+select name, outg, inc from (select title as name , outgoing_links_count as outg, incoming_links_count as inc from links natural join pages) where outg between 5 and 15 and inc between 5 and 15 limit 600;
