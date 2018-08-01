@@ -81,6 +81,7 @@ def extreme_test_heuristic(samples,algo, forward, backward=None, ):
             file.write('\t'.join(['impulsive choice',str(heu[4]),str(heu[0]),str(heu[2]),str(heu[1]),str(int(bfs[1])+int(bfs[2])),str(heu[3]),str(bfs[0]),str(bfs[4]),str(int(bfs[1])+int(bfs[2]))])+'\n')
 
         except:
+            file.write('crushed on ',start_art, end_art)
             continue
 
     for i in range(samples):
@@ -92,6 +93,7 @@ def extreme_test_heuristic(samples,algo, forward, backward=None, ):
             file.write('\t'.join(['uniform choice',str(heu[4]),str(heu[0]),str(heu[2]),str(heu[1]),str(heu[3]),str(bfs[0]),str(bfs[4]),str(int(bfs[1])+int(bfs[2]))])+'\n')
 
         except:
+            file.write('crushed on '+ start_art+ end_art)
             continue
     file.close()
 
