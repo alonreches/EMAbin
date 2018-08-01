@@ -8,13 +8,22 @@ go_button_xpath = "/html/body/app-root/app-landing-page/div/div/div[2]/div[1]/di
 main_page_timer = '//*[@id="playNowButton"]/small'
 game_timer = '/html/body/app-root/app-group/div/div/div[1]/div[1]/div/div[4]'
 play_now_button = '//*[@id="playNowButton"]'
-
+# DB_PATH = r'C:\Users\alon\Desktop\HUJI\3rdYear\AI\Project\sdow.sqlite'
 driver = webdriver.Chrome()
 driver.implicitly_wait(5)
 driver.get("https://thewikigame.com")
 login_form = driver.find_element_by_xpath(login_name_xpath)
 login_form.send_keys("EMA BIN\n")
 time.sleep(5)
+
+# db_connection = sqlite3.connect(DB_PATH)
+# def list_redirections(page_name):
+#     cursor = db_connection.cursor()
+#     cursor.execute("select id from pages where title = \"{name}\"".format(name=page_name.replace(" ", "_")))
+#     pageid = cursor.fetchall()
+#
+#     "select * from redirects where target_id = 16881;"
+
 while True:
     try:
         driver.get("https://thewikigame.com/group")
