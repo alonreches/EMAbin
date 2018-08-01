@@ -162,12 +162,45 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
 
 ########################################### NMP^ ########################
 def language_heuristic(state, problem=None):
-    num_of_languages = state.state.num_of_language // 10
-    return state.depth - num_of_languages
+    num_of_languages = state.state.num_of_language / 10
+    parent_num_of_languages = 1 if state.parent is None else state.parent.state.num_of_language / 10
+    denominator = num_of_languages
+    numerator = parent_num_of_languages
+
+    if denominator == 0 or num_of_languages > 8:
+        return 500000 #TODO: deal with it correctly
+    if state.parent is not None and DEBUG:
+        print(" --> ".join([x.state.title for x in state.node_path()]))
+    return numerator / denominator + state.depth/10
+
+
+def _category_filter(category):
+    category = category.split(":")[-1].lower()
+    if "lacking" in category:
+        return False
+    if "article" in category:
+        return False
+    if "wiki" in category:
+        return False
+    if category.startswith("all"):
+        return False
+    if "infobox" in category:
+        return False
+    if "Hidden categories" in category:
+        return False
+    if category.startswith("redirects"):
+        return False
+    if category.startswith("pages"):
+        return False
+    if category.startswith("Use dmy dates"):
+        return False
+    if category.startswith("Year of"):
+        return False
+    return True
 
 
 def metadata_heuristic(state, problem=None):
-    curr_cats = state.state.categories
+    curr_cats = list(filter(_category_filter, state.state.categories))
     target_cats = problem.get_goal_state().categories
     intersection = list(set(curr_cats) & set(target_cats))
     shared = len(intersection)
