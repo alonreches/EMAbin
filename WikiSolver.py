@@ -6,7 +6,11 @@ from WikiProblem import WikiProblem
 import util
 from sql_offline_queries import *
 import time
-from executor import DEBUG
+try:
+    from executor import DEBUG
+except:
+    DEBUG = True
+
 
 class Node:
     def __init__(self, state, parent=None, path_cost=0, backwards=False):
@@ -157,22 +161,19 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
 
 
 ########################################### NMP^ ########################
+def language_heuristic(state, problem=None):
+    num_of_languages = state.state.num_of_language // 10
+    return state.depth - num_of_languages
 
-def Meta_Data_heuristic(state, problem=None):
-    curr_cats = problem.get_categories_of_article(state)
-    target_cats = problem.get_categories_of_article(problem.get_goal_state())
+
+def metadata_heuristic(state, problem=None):
+    curr_cats = state.state.categories
+    target_cats = problem.get_goal_state().categories
     intersection = list(set(curr_cats) & set(target_cats))
     shared = len(intersection)
     f = -(10 ** shared)
     if shared == 0:
-        return 0
-    if DEBUG:
-        print("--------------------------")
-        print("now on", state, "with categories: ", curr_cats)
-        print("end is", problem.get_goal_state(), "with categories: ", target_cats)
-        print("intersection", intersection, "shared", len(intersection))
-        print("returned f(x) = ", f)
-
+        return state.depth
     return f
 
 
@@ -211,8 +212,12 @@ END = "Null Island"
 
 
 def run(start, end, algo, forward_heu, backward_heu):
-    problem_forward = OfflineWikiProblem(start, end)
-    problem_backward = OfflineWikiProblem(end, start)
+    if forward_heu in (bow_heuristic, language_heuristic, metadata_heuristic):
+        problem_forward = WikiProblem(start, end)
+        problem_backward = WikiProblem(end, start)
+    else:
+        problem_forward = OfflineWikiProblem(start, end)
+        problem_backward = OfflineWikiProblem(end, start)
     start = time.time()
     fpath, bpath,  fopen, bopen = algo(problem_forward=problem_forward,
                                        problem_backward=problem_backward,

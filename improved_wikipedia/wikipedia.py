@@ -254,7 +254,7 @@ def summary(title, sentences=0, chars=0, auto_suggest=True, redirect=True):
 def pages(titles, pageid=None, auto_suggest=True, redirect=True, preload=False):
     pages = []
     query_params = {
-        'prop': 'categories|info|pageprops|revisions',  # adding revisions may slow the request
+        'prop': 'langlinks|categories|info|pageprops|revisions',  # adding revisions may slow the request
         'inprop': 'url',
         'ppprop': 'disambiguation',
         'redirects': '',
@@ -330,6 +330,11 @@ class WikipediaPage(object):
                 self._categories = [x["title"] for x in content["query"]["pages"][self.pageid]["categories"]]
             except KeyError:
                 pass
+            try:
+                self.num_of_language = len(content["query"]["pages"][self.pageid]["langlinks"])
+            except:
+                self.num_of_language = 0
+
 
         else:
             raise ValueError("Either a title or a pageid must be specified")
