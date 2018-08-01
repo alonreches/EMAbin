@@ -1,4 +1,6 @@
 # TODO: don't make it look like yoni's solution
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy.spatial import distance
 from optparse import OptionParser
 from WikiProblem import WikiProblem
 import util
@@ -196,9 +198,16 @@ def merger_rank_heuristic(state, problem=None):
     return numerator / denominator
 
 
+def bow_heuristic(state, problem=None):
+    vectorizer = CountVectorizer()
+    goal_text = problem.get_goal_state().get_text()
+    current_text = state.state.get_text()
+    X = vectorizer.fit_transform([goal_text, current_text])
+    dist = distance.euclidean(X[0].toarray(), X[1].toarray())
+    return state.depth + dist
 
-START = "Lion Express"
-END = "Phinney"
+START = "Charlie Brown"
+END = "Null Island"
 
 
 def run(start, end, algo, forward_heu, backward_heu):
@@ -213,12 +222,12 @@ def run(start, end, algo, forward_heu, backward_heu):
     return [x.state.title for x in fpath], [x.state.title for x in bpath], fopen, bopen, total_time, len(fpath)+len(bpath)-1
 
 if __name__ == "__main__":
-    problem_forward = OfflineWikiProblem(START, END)
-    problem_backward = OfflineWikiProblem(END, START)
+    problem_forward = WikiProblem(START, END)
+    problem_backward = WikiProblem(END, START)
     print(bidirectional_a_star(problem_forward=problem_forward,
                                problem_backward=problem_backward,
-                               heuristic_forward=splitter_rank_heuristic,
-                               heuristic_backward=merger_rank_heuristic))
+                               heuristic_forward=bow_heuristic,
+                               heuristic_backward=bow_heuristic))
 
     # print(bidirectional_a_star(problem_forward=problem_forward,
     #                            problem_backward=problem_backward,

@@ -254,10 +254,11 @@ def summary(title, sentences=0, chars=0, auto_suggest=True, redirect=True):
 def pages(titles, pageid=None, auto_suggest=True, redirect=True, preload=False):
     pages = []
     query_params = {
-        'prop': 'info|pageprops|revisions',  # adding revisions may slow the request
+        'prop': 'categories|info|pageprops|revisions',  # adding revisions may slow the request
         'inprop': 'url',
         'ppprop': 'disambiguation',
         'redirects': '',
+        'rvprop': 'content',
     }
     query_params['titles'] = "|".join(titles)
 
@@ -320,6 +321,15 @@ class WikipediaPage(object):
         elif content is not None:
             self.pageid = list(content["query"]["pages"].keys())[0]
             self.title = content["query"]["pages"][self.pageid]["title"]
+            try:
+                self.text = content["query"]["pages"][self.pageid]["revisions"][0]["*"]
+            except KeyError:
+                print(self.title, "didn't return content")
+                self.text = ""
+            try:
+                self._categories = [x["title"] for x in content["query"]["pages"][self.pageid]["categories"]]
+            except KeyError:
+                pass
 
         else:
             raise ValueError("Either a title or a pageid must be specified")
@@ -435,7 +445,6 @@ class WikipediaPage(object):
             self.title = page['title']
             self.url = page['fullurl']
 
-
     def __continued_query(self, query_params):
         '''
         Based on https://www.mediawiki.org/wiki/API:Query#Continuing_queries
@@ -473,6 +482,9 @@ class WikipediaPage(object):
             return {'titles': self.title}
         else:
             return {'pageids': self.pageid}
+
+    def get_text(self):
+        return self.text
 
     def html(self):
         '''

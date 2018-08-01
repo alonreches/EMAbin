@@ -1,8 +1,5 @@
 from WikiSolver import *
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 import time
 start_xpath = "/html/body/app-root/app-group/div/div/div/div[1]/div/div[1]/div/div/div[2]/div/div/div[2]"
 goal_xpath = "/html/body/app-root/app-group/div/div/div/div[1]/div/div[1]/div/div/div[3]/div/div/div[2]"
@@ -33,7 +30,7 @@ while True:
         start_article = driver.find_element_by_xpath(start_xpath).text
         goal_article = driver.find_element_by_xpath(goal_xpath).text
         print("loading run")
-        fpath, bpath, fopen, bopen, total_time = run(start=start_article, end=goal_article, algo=bidirectional_a_star,
+        fpath, bpath, fopen, bopen, total_time, path_length = run(start=start_article, end=goal_article, algo=bidirectional_a_star,
                                                      forward_heu=splitter_rank_heuristic, backward_heu=merger_rank_heuristic)
 
         if int(driver.find_element_by_xpath(main_page_timer).text[:-1]) > 15:
@@ -43,7 +40,7 @@ while True:
             path = fpath + bpath[1:]
             print(path)
             for article in path[1:]:
-                article = "https://thewikigame.com/wiki/"+article.state.title.replace(" ", "_").lower()
+                article = "https://thewikigame.com/wiki/"+article.replace(" ", "_").lower()
                 links = driver.find_elements_by_tag_name("a")
                 # print([a.get_attribute("href") for a in links])
                 for a in links:
@@ -58,3 +55,4 @@ while True:
     except:
         import traceback
         traceback.print_exc()
+    time.sleep(1)

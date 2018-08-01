@@ -12,8 +12,8 @@ class WikiProblem:
     def __init__(self, start_state, goal_state):
         self.get_successors_count = 0
         self.get_predecessors_count = 0
-        self.start_state = wikipedia.page(start_state)
-        self.goal_state = wikipedia.page(goal_state)
+        self.start_state = wikipedia.pages([start_state])[0]
+        self.goal_state = wikipedia.pages([goal_state])[0]
 
     def get_start_state(self):
         return self.start_state
