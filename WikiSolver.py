@@ -1,10 +1,16 @@
 # TODO: don't make it look like yoni's solution
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy.spatial import distance
 from optparse import OptionParser
 from WikiProblem import WikiProblem
 import util
 from sql_offline_queries import *
 import time
-from executor import DEBUG
+try:
+    from executor import DEBUG
+except:
+    DEBUG = True
+
 
 class Node:
     def __init__(self, state, parent=None, path_cost=0, backwards=False):
@@ -155,22 +161,19 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
 
 
 ########################################### NMP^ ########################
+def language_heuristic(state, problem=None):
+    num_of_languages = state.state.num_of_language // 10
+    return state.depth - num_of_languages
 
-def Meta_Data_heuristic(state, problem=None):
-    curr_cats = problem.get_categories_of_article(state)
-    target_cats = problem.get_categories_of_article(problem.get_goal_state())
+
+def metadata_heuristic(state, problem=None):
+    curr_cats = state.state.categories
+    target_cats = problem.get_goal_state().categories
     intersection = list(set(curr_cats) & set(target_cats))
     shared = len(intersection)
     f = -(10 ** shared)
     if shared == 0:
-        return 0
-    if DEBUG:
-        print("--------------------------")
-        print("now on", state, "with categories: ", curr_cats)
-        print("end is", problem.get_goal_state(), "with categories: ", target_cats)
-        print("intersection", intersection, "shared", len(intersection))
-        print("returned f(x) = ", f)
-
+        return state.depth
     return f
 
 
@@ -196,14 +199,25 @@ def merger_rank_heuristic(state, problem=None):
     return numerator / denominator
 
 
+def bow_heuristic(state, problem=None):
+    vectorizer = CountVectorizer()
+    goal_text = problem.get_goal_state().get_text()
+    current_text = state.state.get_text()
+    X = vectorizer.fit_transform([goal_text, current_text])
+    dist = distance.euclidean(X[0].toarray(), X[1].toarray())
+    return state.depth + dist
 
-START = "Lion Express"
-END = "Phinney"
+START = "Charlie Brown"
+END = "Null Island"
 
 
 def run(start, end, algo, forward_heu, backward_heu):
-    problem_forward = OfflineWikiProblem(start, end)
-    problem_backward = OfflineWikiProblem(end, start)
+    if forward_heu in (bow_heuristic, language_heuristic, metadata_heuristic):
+        problem_forward = WikiProblem(start, end)
+        problem_backward = WikiProblem(end, start)
+    else:
+        problem_forward = OfflineWikiProblem(start, end)
+        problem_backward = OfflineWikiProblem(end, start)
     start = time.time()
     fpath, bpath,  fopen, bopen = algo(problem_forward=problem_forward,
                                        problem_backward=problem_backward,
@@ -213,12 +227,12 @@ def run(start, end, algo, forward_heu, backward_heu):
     return [x.state.title for x in fpath], [x.state.title for x in bpath], fopen, bopen, total_time, len(fpath)+len(bpath)-1
 
 if __name__ == "__main__":
-    problem_forward = OfflineWikiProblem(START, END)
-    problem_backward = OfflineWikiProblem(END, START)
+    problem_forward = WikiProblem(START, END)
+    problem_backward = WikiProblem(END, START)
     print(bidirectional_a_star(problem_forward=problem_forward,
                                problem_backward=problem_backward,
-                               heuristic_forward=splitter_rank_heuristic,
-                               heuristic_backward=merger_rank_heuristic))
+                               heuristic_forward=bow_heuristic,
+                               heuristic_backward=bow_heuristic))
 
     # print(bidirectional_a_star(problem_forward=problem_forward,
     #                            problem_backward=problem_backward,
