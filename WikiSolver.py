@@ -110,8 +110,10 @@ def a_star_search(problem_forward, problem_backward=None, heuristic_forward=null
     return path, [], problem_forward.get_successors_count, -1
 
 
-def bfs(problem, heuristic=null_heuristic):
-    return graph_search(problem, util.Queue())
+def bfs_heuristic(n,p):
+    return n.depth
+
+
 
 
 # TODO: Maybe consider shortcuts found along the way

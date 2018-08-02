@@ -2,6 +2,9 @@ from improved_wikipedia import wikipedia
 import random
 import itertools
 from WikiSolver import *
+import multiprocessing as mp
+import time as Time
+
 
 POPULAR_PAGES_ID = "37397829"
 from sys import argv
@@ -113,7 +116,7 @@ def extreme_test_heuristic(rounds, gameTypes, methods ):
     splitters = generate_splitters()
     rare = generate_rares()
 
-    file = open("extreme_test_results.txt", 'w', 1)
+    file = open("extreme_test_results"+Time.ctime().replace(' ','_').replace(':','_')+".txt", 'w', 1)
 
     file.write('genre\talg-fHeu-bHeu\tstart_art\tend-art\tdepth\topened-src\topend-dest\topened-total\ttime\tpath\terrors\n')
 
@@ -129,11 +132,20 @@ def extreme_test_heuristic(rounds, gameTypes, methods ):
 
                 try:
                     print("runing %s from %s to %s" % (methodName, start_art, end_art))
-                    path, bopen, fopen, time, depth = parse_run(start_art, end_art, algo, forward, backward)
-                    file.write('\t'.join(["",str(depth), str(fopen), str(bopen), str(bopen+fopen), str(time), path, '\n']))
+                    pool = mp.Pool(processes=1)
+                    single_test_thread = pool.apply_async(parse_run, args=[start_art, end_art, algo, forward, backward])
+                    try:
+                        path, bopen, fopen, time, depth = single_test_thread.get(timeout=60 * 5)
+                        file.write('\t'.join(["", str(depth), str(fopen), str(bopen), str(bopen + fopen), str(time), path, '\n']))
+                        pool.close()
 
-                except e:
-                    file.write('-\t-\t-\t-\t-\t-\t'+e+'\n')
+                    except mp.TimeoutError:
+                        pool.terminate()
+                        raise Exception('failed to work withing 5 minuets')
+
+
+                except Exception as e:
+                    file.write('-\t-\t-\t-\t-\t-\t'+str(e)+'\n')
 
     file.close()
 
@@ -144,11 +156,11 @@ def extreme_test_heuristic(rounds, gameTypes, methods ):
 
 if __name__ == "__main__":
     methods = []
-    methods += [(bidirectional_a_star, lambda n, p: n.depth, lambda n, p: n.depth)]              #bfs
+    methods += [(bidirectional_a_star, bfs_heuristic, bfs_heuristic)]                             #bfs
     methods += [(bidirectional_a_star, bow_heuristic, bow_heuristic)]                            #bow
     methods += [(bidirectional_a_star, language_heuristic, language_heuristic)]                  #lang
     methods += [(bidirectional_a_star, metadata_heuristic, metadata_heuristic)]                  #categories
-    methods += [(bidirectional_a_star, splitter_rank_heuristic, merger_rank_heuristic)]      #better-than-dad
+    methods += [(bidirectional_a_star, splitter_rank_heuristic, merger_rank_heuristic)]           #better-than-dad
 
     gameTypes = []
     gameTypes += ["impolsive"]
@@ -157,5 +169,5 @@ if __name__ == "__main__":
     gameTypes += ["niche"]
     gameTypes += ["extreme"]
 
-    extreme_test_heuristic(1, gameTypes ,methods)
+    extreme_test_heuristic(100, gameTypes ,methods)
     print('DONE')
