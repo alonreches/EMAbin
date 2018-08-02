@@ -145,7 +145,7 @@ def extreme_test_heuristic(rounds, gameTypes, methods ):
 
 
                 except Exception as e:
-                    file.write('-\t-\t-\t-\t-\t-\t'+str(e)+'\n')
+                    file.write('\t-\t-\t-\t-\t-\t-\t'+str(e)+'\n')
 
     file.close()
 
