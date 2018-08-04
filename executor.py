@@ -1,16 +1,20 @@
+from optparse import OptionParser
 from improved_wikipedia import wikipedia
 import random
 import itertools
 from WikiSolver import *
 import multiprocessing as mp
-import time as Time
+import time
+import string
+import sys
 
+printable = set(string.printable)
 
 POPULAR_PAGES_ID = "37397829"
 from sys import argv
 
 DEBUG = False
-if len(argv) > 1 and argv[1] == "debug":
+if len(argv) > 1 and argv[-1] == "debug":
     DEBUG = True
 
 
@@ -24,31 +28,259 @@ def generate_popular_pages():
         # Randomly choose pair of links
         yield random.choice(pairs)
 
+
 def generate_mergers():
-    #merger_pages = ['Lortel_Archives',	'Allgemeine_Deutsche_Biographie',	'Glove_(ice_hockey)',	'Australian_Plant_Name_Index',	'Jֳ³zef_Razowski',	'Wiley-Blackwell',	'Mississippi_Alluvial_Plain',	'Structurae',	'Lists_of_Korean_films',	'Lists_of_Indian_Punjabi_films',	'Groundbreaking',	'SAGE_Publications',	'RPGA',	'All_About_Jazz',	'Light_characteristic',	'CODEN',	'List_of_Sri_Lankan_Tamil_films',	'Satellite_Catalog_Number',	'European_Community_number',	'Lists_of_Sri_Lankan_films',	'BC_Geographical_Names',	'Floor_area_(building)',	'Manufacturer\'s_empty_weight',	'International_Designator',	'Dictionary_of_Canadian_Biography',	'Verbandsgemeinde',	'20-yard_shuttle',	'Vertical_jump',	'Rediff.com',	'Goals_against_average',	'Centre_de_donnֳ©es_astronomiques_de_Strasbourg',	'Ships_of_the_Royal_Navy',	'J._J._Colledge',	'IndieWire',	'Fellow_of_the_Royal_Society_of_Edinburgh',	'Union_councils_of_Pakistan',	'Biographical_Directory_of_Federal_Judges',	'Balinese_saka_calendar',	'Classic_hits',	'Drowned_in_Sound',	'Games_played',	'HanCinema',	'Diseases_Database',	'Smithsonian_Astrophysical_Observatory_Star_Catalog',	'Keel_laying',	'Curb_weight',	'KulturNav',	'Acoustic_music',	'Observation_arc',	'Norsk_biografisk_leksikon',	'Dieter_Nohlen',	'1991_Nepal_census',	'Advisory_Committee_on_Antarctic_Names',	'Channel_(broadcasting)',	'Games_behind',	'Base_Lֳ©onore',	'Bundesverband_Musikindustrie',	'Digital_Himalaya',	'JPL_Small-Body_Database',	'Normal_route',	'Australian_Dictionary_of_Biography',	'Stephen_Thomas_Erlewine',	'BacDive',	'List_of_ICD-9_codes',	'Aviation_Safety_Network',	'New_International_Encyclopedia',	'AFI_Catalog_of_Feature_Films',	'Inflow_(hydrology)',	'Fussballdaten.de',	'Specific_name_(zoology)',	'Forward_(ice_hockey)',	'Russian_Census_(2010)',	'Full-time_equivalent',	'National_Register_Information_System',	'PRIAM_enzyme-specific_profiles',	'IntEnz',	'MetaCyc',	'CiNii',	'Borough_(Pennsylvania)',	'Stephan_von_Breuning_(entomologist)',	'Turkish_Statistical_Institute',	'Rec.Sport.Soccer_Statistics_Foundation',	'Enzyme_activator',	'Killed_in_action',	'IUPAC_nomenclature_of_chemistry',	'Mammal_Species_of_the_World',	'FloraBase',	'Unique_Ingredient_Identifier',	'Store_norske_leksikon',	'Historical_Dictionary_of_Switzerland',	'Captain_(sports)',	'Assist_(ice_hockey)',	'World_Spider_Catalog',	'Point_(ice_hockey)',	'Flora_of_North_America',	'Doctoral_advisor',	'Internet_Broadway_Database',	'Human_Genome_Organisation',	'MycoBank',	'Istituto_Centrale_per_il_Catalogo_Unico',	'Parent_company',	'Facility_ID',	'World_Checklist_of_Selected_Plant_Families',	'Fossilworks',	'Fauna_Europaea',	'AllMovie',	'National_Biodiversity_Network',	'Germplasm_Resources_Information_Network',	'Sports_Reference',	'BugGuide',	'LIBRIS',	'Bibcode',	'Union_List_of_Artist_Names',	'Population_without_double_counting',	'Plants_of_the_World_Online',	'Tropicos',	'GEOnet_Names_Server',	'World_Register_of_Marine_Species',	'The_Global_Lepidoptera_Names_Index',	'Geographic_Names_Information_System',	'SNAC',	'Systֳ¨me_universitaire_de_documentation',	'Global_Biodiversity_Information_Facility',	'Library_of_Congress_Control_Number']
-    merger_pages = ['Lortel Archives',	'Allgemeine Deutsche Biographie',	'Glove (ice hockey)',	'Australian Plant Name Index',	'Jֳ³zef Razowski',	'Wiley-Blackwell',	'Mississippi Alluvial Plain',	'Structurae',	'Lists of Korean films',	'Lists of Indian Punjabi films',	'Groundbreaking',	'SAGE Publications',	'RPGA',	'All About Jazz',	'Light characteristic',	'CODEN',	'List of Sri Lankan Tamil films',	'Satellite Catalog Number',	'European Community number',	'Lists of Sri Lankan films',	'BC Geographical Names',	'Floor area (building)',	'Manufacturer\'s empty weight',	'International Designator',	'Dictionary of Canadian Biography',	'Verbandsgemeinde',	'20-yard shuttle',	'Vertical jump',	'Rediff.com',	'Goals against average',	'Centre de donnֳ©es astronomiques de Strasbourg',	'Ships of the Royal Navy',	'J. J. Colledge',	'IndieWire',	'Fellow of the Royal Society of Edinburgh',	'Union councils of Pakistan',	'Biographical Directory of Federal Judges',	'Balinese saka calendar',	'Classic hits',	'Drowned in Sound',	'Games played',	'HanCinema',	'Diseases Database',	'Smithsonian Astrophysical Observatory Star Catalog',	'Keel laying',	'Curb weight',	'KulturNav',	'Acoustic music',	'Observation arc',	'Norsk biografisk leksikon',	'Dieter Nohlen',	'1991 Nepal census',	'Advisory Committee on Antarctic Names',	'Channel (broadcasting)',	'Games behind',	'Base Lֳ©onore',	'Bundesverband Musikindustrie',	'Digital Himalaya',	'JPL Small-Body Database',	'Normal route',	'Australian Dictionary of Biography',	'Stephen Thomas Erlewine',	'BacDive',	'List of ICD-9 codes',	'Aviation Safety Network',	'New International Encyclopedia',	'AFI Catalog of Feature Films',	'Inflow (hydrology)',	'Fussballdaten.de',	'Specific name (zoology)',	'Forward (ice hockey)',	'Russian Census (2010)',	'Full-time equivalent',	'National Register Information System',	'PRIAM enzyme-specific profiles',	'IntEnz',	'MetaCyc',	'CiNii',	'Borough (Pennsylvania)',	'Stephan von Breuning (entomologist)',	'Turkish Statistical Institute',	'Rec.Sport.Soccer Statistics Foundation',	'Enzyme activator',	'Killed in action',	'IUPAC nomenclature of chemistry',	'Mammal Species of the World',	'FloraBase',	'Unique Ingredient Identifier',	'Store norske leksikon',	'Historical Dictionary of Switzerland',	'Captain (sports)',	'Assist (ice hockey)',	'World Spider Catalog',	'Point (ice hockey)',	'Flora of North America',	'Doctoral advisor',	'Internet Broadway Database',	'Human Genome Organisation',	'MycoBank',	'Istituto Centrale per il Catalogo Unico',	'Parent company',	'Facility ID',	'World Checklist of Selected Plant Families',	'Fossilworks',	'Fauna Europaea',	'AllMovie',	'National Biodiversity Network',	'Germplasm Resources Information Network',	'Sports Reference',	'BugGuide',	'LIBRIS',	'Bibcode',	'Union List of Artist Names',	'Population without double counting',	'Plants of the World Online',	'Tropicos',	'GEOnet Names Server',	'World Register of Marine Species',	'The Global Lepidoptera Names Index',	'Geographic Names Information System',	'SNAC',	'Systֳ¨me universitaire de documentation',	'Global Biodiversity Information Facility',	'Library of Congress Control Number']
+    merger_pages = ['Lortel Archives', 'Allgemeine Deutsche Biographie', 'Glove (ice hockey)',
+                    'Australian Plant Name Index', 'Jֳ³zef Razowski', 'Wiley-Blackwell', 'Mississippi Alluvial Plain',
+                    'Structurae', 'Lists of Korean films', 'Lists of Indian Punjabi films', 'Groundbreaking',
+                    'SAGE Publications', 'RPGA', 'All About Jazz', 'Light characteristic', 'CODEN',
+                    'List of Sri Lankan Tamil films', 'Satellite Catalog Number', 'European Community number',
+                    'Lists of Sri Lankan films', 'BC Geographical Names', 'Floor area (building)',
+                    'Manufacturer\'s empty weight', 'International Designator', 'Dictionary of Canadian Biography',
+                    'Verbandsgemeinde', '20-yard shuttle', 'Vertical jump', 'Rediff.com', 'Goals against average',
+                    'Centre de donnֳ©es astronomiques de Strasbourg', 'Ships of the Royal Navy', 'J. J. Colledge',
+                    'IndieWire', 'Fellow of the Royal Society of Edinburgh', 'Union councils of Pakistan',
+                    'Biographical Directory of Federal Judges', 'Balinese saka calendar', 'Classic hits',
+                    'Drowned in Sound', 'Games played', 'HanCinema', 'Diseases Database',
+                    'Smithsonian Astrophysical Observatory Star Catalog', 'Keel laying', 'Curb weight', 'KulturNav',
+                    'Acoustic music', 'Observation arc', 'Norsk biografisk leksikon', 'Dieter Nohlen',
+                    '1991 Nepal census', 'Advisory Committee on Antarctic Names', 'Channel (broadcasting)',
+                    'Games behind', 'Base Lֳ©onore', 'Bundesverband Musikindustrie', 'Digital Himalaya',
+                    'JPL Small-Body Database', 'Normal route', 'Australian Dictionary of Biography',
+                    'Stephen Thomas Erlewine', 'BacDive', 'List of ICD-9 codes', 'Aviation Safety Network',
+                    'New International Encyclopedia', 'AFI Catalog of Feature Films', 'Inflow (hydrology)',
+                    'Fussballdaten.de', 'Specific name (zoology)', 'Forward (ice hockey)', 'Russian Census (2010)',
+                    'Full-time equivalent', 'National Register Information System', 'PRIAM enzyme-specific profiles',
+                    'IntEnz', 'MetaCyc', 'CiNii', 'Borough (Pennsylvania)', 'Stephan von Breuning (entomologist)',
+                    'Turkish Statistical Institute', 'Rec.Sport.Soccer Statistics Foundation', 'Enzyme activator',
+                    'Killed in action', 'IUPAC nomenclature of chemistry', 'Mammal Species of the World', 'FloraBase',
+                    'Unique Ingredient Identifier', 'Store norske leksikon', 'Historical Dictionary of Switzerland',
+                    'Captain (sports)', 'Assist (ice hockey)', 'World Spider Catalog', 'Point (ice hockey)',
+                    'Flora of North America', 'Doctoral advisor', 'Internet Broadway Database',
+                    'Human Genome Organisation', 'MycoBank', 'Istituto Centrale per il Catalogo Unico',
+                    'Parent company', 'Facility ID', 'World Checklist of Selected Plant Families', 'Fossilworks',
+                    'Fauna Europaea', 'AllMovie', 'National Biodiversity Network',
+                    'Germplasm Resources Information Network', 'Sports Reference', 'BugGuide', 'LIBRIS', 'Bibcode',
+                    'Union List of Artist Names', 'Population without double counting', 'Plants of the World Online',
+                    'Tropicos', 'GEOnet Names Server', 'World Register of Marine Species',
+                    'The Global Lepidoptera Names Index', 'Geographic Names Information System', 'SNAC',
+                    'Systֳ¨me universitaire de documentation', 'Global Biodiversity Information Facility',
+                    'Library of Congress Control Number']
 
     while True:
         yield random.choice(merger_pages)
 
+
 def generate_splitters():
-    #splitter_pages = ['Popular_music_pedagogy',	'PRDM2',	'Pressure_reactivity_index',	'Princess_seams',	'Prison_Memoirs_of_an_Anarchist',	'Professional_Football_Sports_Association',	'Programming_Language_for_Business',	'PROP1',	'Proton-sensing_G_protein-coupled_receptors',	'Ptarmigan_Pass_(Front_Range)',	'R._G._de_S._Wettimuny',	'Raco_Army_Airfield',	'RAF_Bomber_Command_aircrew_of_World_War_II',	'Rajalakshmi_School_of_Architecture',	'Rancho_San_Francisquito_(Dalton)',	'Raoul_Lefֳ¨vre',	'Ratneshwar_Mahadev_temple',	'Recipients_of_the_Legion_of_Merit',	'Record-Rama',	'Results_of_the_Japanese_general_election,_2009',	'Ricki_&_Copper',	'Roald_Glacier',	'RU-28306',	'Russian_Armed_Forces_casualties_in_Syria',	'Ryֵji_Chֵ«bachi',	'Sֵiku_Shigematsu',	'Safire_Theatre_complex',	'Saint_Michael\'s_Roman_Catholic_Church_&_Rectory',	'Saint_Nicholas_Greek_Orthodox_Cathedral_(Pittsburgh)',	'Samsung_Galaxy_C7',	'San_Felipe_de_Austin_State_Historic_Site',	'San_Juan_Hill_order_of_battle',	'San_Luis_National_Wildlife_Refuge_Complex',	'Sapt_Kranti_Express',	'Sarvanivarana-Vishkambhin',	'Saulxures,_Haute-Marne',	'Sayadaw_U_Tejaniya',	'Schiller_Elementary_School',	'Scottish_Games_in_North_Carolina',	'Secrets_of_Sarlona',	'Self-disorder',	'Sellers_House_(Pittsburgh,_Pennsylvania)',	'Senate_Constitutional_Amendment_No._5',	'Sex_hormone_receptor',	'Shahira_Amin',	'Shantadurga_Kalangutkarin_Temple',	'Sheja_Dzֳ¶',	'Shields_of_the_Revolution_Council',	'Shooting_at_the_2008_Summer_Olympics_ג€“_Qualification',	'Shoup\'s_Mountain_Battery',	'Shravana_(hearing)',	'Sinking_Creek_Raid',	'Sisters_of_the_Company_of_Mary,_Our_Lady',	'Sitaramdas_Omkarnath',	'Solar_eclipse_of_August_28,_1848',	'Solar_eclipse_of_May_7,_1902',	'Solar_eclipse_of_October_31,_1902',	'South_Dakota_Legislative_Research_Council',	'South_Side_High_School_(Pittsburgh,_Pennsylvania)',	'South_Side_Market_Building',	'St._Clair_Incline',	'St._Clair_Village',	'St._Philomena\'s_Church_(Pittsburgh)',	'Stadium_Authority_of_the_City_of_Pittsburgh',	'Stan_Wawrinka_career_statistics',	'Stanwix_Street_(Pittsburgh)',	'Steel_Valley_(Pittsburgh)',	'Stevens_Elementary_School',	'Straumnes_Air_Station',	'Structure_of_the_French_Army_in_1989',	'Structure_of_the_Hellenic_Air_Force',	'Subong',	'Super_Singer_Junior_(season_2)',	'Suqour_al-Ezz',	'Syrian_National_Resistance',	'Table_of_stars_with_Bayer_designations',	'Tashi_Tsering_(Chenrezig_Institute)',	'Technological_and_industrial_history_of_20th-century_Canada',	'Televisiֳ³_Digital_Terrestre',	'Testosterone_acetate',	'Testosterone_valerate',	'Thalamiflorae',	'The_Atruaghin_Clans',	'The_Boatman\'s_Dance',	'The_Gathering_2009',	'The_Jew_in_the_Lotus',	'The_Lives_of_Dutch_painters_and_paintresses',	'The_Mabuhay_Channel',	'The_Masked_Marauders',	'The_Old_Path',	'The_Projection_Booth',	'Third_Bardor_Tulku_Rinpoche',	'Thiru_Vi._Ka._Bridge',	'Thubten_Gyatso_(Australian_monk)',	'Timeline_of_Caen',	'Timeline_of_Cambridge,_Massachusetts',	'Timeline_of_Chennai_history',	'Timeline_of_Clermont-Ferrand',	'Timeline_of_Copenhagen',	'Timeline_of_Gold_Coast,_Queensland',	'Timeline_of_Grenoble',	'Timeline_of_healthcare_in_China',	'Timeline_of_Homs',	'Timeline_of_Kaliningrad',	'Timeline_of_Madrid',	'Timeline_of_Mulhouse',	'Timeline_of_Nantes',	'Timeline_of_Newark,_New_Jersey',	'Timeline_of_Nice',	'Timeline_of_Portuguese_history_(Lusitania_and_Gallaecia)',	'Timeline_of_Reims',	'Timeline_of_Rouen',	'Timeline_of_the_21st_century',	'Timeline_of_the_feminist_art_movement_in_New_Zealand',	'Timeline_of_Toulon',	'Timeline_of_women_in_religion',	'Tool_use_by_sea_otters',	'Troy_Hill_Incline',	'Trudeau_Landing',	'Tsukuba_FC',	'Udumbara_(Buddhism)',	'UFC_All_Access',	'Ugraparipב¹›cchִ_Sֵ«tra',	'University_of_Pennsylvania_College_of_Arts_&_Sciences',	'University_of_Texas_at_Austin_admissions_controversy',	'Uttar_Pradesh_Expressways_Industrial_Development_Authority',	'Varennes-sur-Amance',	'Vasilisa_Kozhina',	'VER-3323',	'Vic_Cianca',	'Victoria_Hall_(Pittsburgh)',	'Virginia\'s_5th_congressional_district_election,_2010',	'Virginia\'s_8th_congressional_district_election,_2010',	'Virtual_Museum_of_Protestantism',	'Vishva',	'Volazocine',	'Von_Sternberg_House',	'VP-44_(1951-91)',	'Walery_Mroczkowski',	'Walker-Ewing_Log_House',	'Walkman_X_Series',	'Wall_Tax_Road,_Chennai',	'Walter_Nowick',	'Wansong_Xingxiu',	'Warembori_language',	'Waterfalls_of_North_Georgia',	'Werner_Leinfellner',	'West_End_Branch_of_the_Carnegie_Library_of_Pittsburgh',	'Westinghouse_Atom_Smasher',	'Westinghouse_Memorial',	'William_H._Davis_(sheriff)',	'William_Nyogen_Yeo',	'William_Penn_Snyder_House',	'Willmar_Air_Force_Station',	'Wilson_Glacier',	'WLQR_(defunct_1450_AM)',	'Women\'s_liberation_movement_in_Europe',	'Women_in_Latin_music',	'Women_in_Philippine_art',	'Women_in_the_Philippine_National_Police',	'Wotuג€“Wolio_languages',	'Wukong_(monk)',	'Wytheville_Raid',	'Yogadב¹›ב¹£ב¹­isamuccaya',	'Zenitism']
-    splitter_pages = ['Popular music pedagogy',	'PRDM2',	'Pressure reactivity index',	'Princess seams',	'Prison Memoirs of an Anarchist',	'Professional Football Sports Association',	'Programming Language for Business',	'PROP1',	'Proton-sensing G protein-coupled receptors',	'Ptarmigan Pass (Front Range)',	'R. G. de S. Wettimuny',	'Raco Army Airfield',	'RAF Bomber Command aircrew of World War II',	'Rajalakshmi School of Architecture',	'Rancho San Francisquito (Dalton)',	'Raoul Lefֳ¨vre',	'Ratneshwar Mahadev temple',	'Recipients of the Legion of Merit',	'Record-Rama',	'Results of the Japanese general election, 2009',	'Ricki & Copper',	'Roald Glacier',	'RU-28306',	'Russian Armed Forces casualties in Syria',	'Ryֵji Chֵ«bachi',	'Sֵiku Shigematsu',	'Safire Theatre complex',	'Saint Michael\'s Roman Catholic Church & Rectory',	'Saint Nicholas Greek Orthodox Cathedral (Pittsburgh)',	'Samsung Galaxy C7',	'San Felipe de Austin State Historic Site',	'San Juan Hill order of battle',	'San Luis National Wildlife Refuge Complex',	'Sapt Kranti Express',	'Sarvanivarana-Vishkambhin',	'Saulxures, Haute-Marne',	'Sayadaw U Tejaniya',	'Schiller Elementary School',	'Scottish Games in North Carolina',	'Secrets of Sarlona',	'Self-disorder',	'Sellers House (Pittsburgh, Pennsylvania)',	'Senate Constitutional Amendment No. 5',	'Sex hormone receptor',	'Shahira Amin',	'Shantadurga Kalangutkarin Temple',	'Sheja Dzֳ¶',	'Shields of the Revolution Council',	'Shooting at the 2008 Summer Olympics ג€“ Qualification',	'Shoup\'s Mountain Battery',	'Shravana (hearing)',	'Sinking Creek Raid',	'Sisters of the Company of Mary, Our Lady',	'Sitaramdas Omkarnath',	'Solar eclipse of August 28, 1848',	'Solar eclipse of May 7, 1902',	'Solar eclipse of October 31, 1902',	'South Dakota Legislative Research Council',	'South Side High School (Pittsburgh, Pennsylvania)',	'South Side Market Building',	'St. Clair Incline',	'St. Clair Village',	'St. Philomena\'s Church (Pittsburgh)',	'Stadium Authority of the City of Pittsburgh',	'Stan Wawrinka career statistics',	'Stanwix Street (Pittsburgh)',	'Steel Valley (Pittsburgh)',	'Stevens Elementary School',	'Straumnes Air Station',	'Structure of the French Army in 1989',	'Structure of the Hellenic Air Force',	'Subong',	'Super Singer Junior (season 2)',	'Suqour al-Ezz',	'Syrian National Resistance',	'Table of stars with Bayer designations',	'Tashi Tsering (Chenrezig Institute)',	'Technological and industrial history of 20th-century Canada',	'Televisiֳ³ Digital Terrestre',	'Testosterone acetate',	'Testosterone valerate',	'Thalamiflorae',	'The Atruaghin Clans',	'The Boatman\'s Dance',	'The Gathering 2009',	'The Jew in the Lotus',	'The Lives of Dutch painters and paintresses',	'The Mabuhay Channel',	'The Masked Marauders',	'The Old Path',	'The Projection Booth',	'Third Bardor Tulku Rinpoche',	'Thiru Vi. Ka. Bridge',	'Thubten Gyatso (Australian monk)',	'Timeline of Caen',	'Timeline of Cambridge, Massachusetts',	'Timeline of Chennai history',	'Timeline of Clermont-Ferrand',	'Timeline of Copenhagen',	'Timeline of Gold Coast, Queensland',	'Timeline of Grenoble',	'Timeline of healthcare in China',	'Timeline of Homs',	'Timeline of Kaliningrad',	'Timeline of Madrid',	'Timeline of Mulhouse',	'Timeline of Nantes',	'Timeline of Newark, New Jersey',	'Timeline of Nice',	'Timeline of Portuguese history (Lusitania and Gallaecia)',	'Timeline of Reims',	'Timeline of Rouen',	'Timeline of the 21st century',	'Timeline of the feminist art movement in New Zealand',	'Timeline of Toulon',	'Timeline of women in religion',	'Tool use by sea otters',	'Troy Hill Incline',	'Trudeau Landing',	'Tsukuba FC',	'Udumbara (Buddhism)',	'UFC All Access',	'Ugraparipב¹›cchִ Sֵ«tra',	'University of Pennsylvania College of Arts & Sciences',	'University of Texas at Austin admissions controversy',	'Uttar Pradesh Expressways Industrial Development Authority',	'Varennes-sur-Amance',	'Vasilisa Kozhina',	'VER-3323',	'Vic Cianca',	'Victoria Hall (Pittsburgh)',	'Virginia\'s 5th congressional district election, 2010',	'Virginia\'s 8th congressional district election, 2010',	'Virtual Museum of Protestantism',	'Vishva',	'Volazocine',	'Von Sternberg House',	'VP-44 (1951-91)',	'Walery Mroczkowski',	'Walker-Ewing Log House',	'Walkman X Series',	'Wall Tax Road, Chennai',	'Walter Nowick',	'Wansong Xingxiu',	'Warembori language',	'Waterfalls of North Georgia',	'Werner Leinfellner',	'West End Branch of the Carnegie Library of Pittsburgh',	'Westinghouse Atom Smasher',	'Westinghouse Memorial',	'William H. Davis (sheriff)',	'William Nyogen Yeo',	'William Penn Snyder House',	'Willmar Air Force Station',	'Wilson Glacier',	'WLQR (defunct 1450 AM)',	'Women\'s liberation movement in Europe',	'Women in Latin music',	'Women in Philippine art',	'Women in the Philippine National Police',	'Wotuג€“Wolio languages',	'Wukong (monk)',	'Wytheville Raid',	'Yogadב¹›ב¹£ב¹­isamuccaya',	'Zenitism']
+    splitter_pages = ['Popular music pedagogy', 'PRDM2', 'Pressure reactivity index', 'Princess seams',
+                      'Prison Memoirs of an Anarchist', 'Professional Football Sports Association',
+                      'Programming Language for Business', 'PROP1', 'Proton-sensing G protein-coupled receptors',
+                      'Ptarmigan Pass (Front Range)', 'R. G. de S. Wettimuny', 'Raco Army Airfield',
+                      'RAF Bomber Command aircrew of World War II', 'Rajalakshmi School of Architecture',
+                      'Rancho San Francisquito (Dalton)', 'Raoul Lefֳ¨vre', 'Ratneshwar Mahadev temple',
+                      'Recipients of the Legion of Merit', 'Record-Rama',
+                      'Results of the Japanese general election, 2009', 'Ricki & Copper', 'Roald Glacier', 'RU-28306',
+                      'Russian Armed Forces casualties in Syria', 'Ryֵji Chֵ«bachi', 'Sֵiku Shigematsu',
+                      'Safire Theatre complex', 'Saint Michael\'s Roman Catholic Church & Rectory',
+                      'Saint Nicholas Greek Orthodox Cathedral (Pittsburgh)', 'Samsung Galaxy C7',
+                      'San Felipe de Austin State Historic Site', 'San Juan Hill order of battle',
+                      'San Luis National Wildlife Refuge Complex', 'Sapt Kranti Express', 'Sarvanivarana-Vishkambhin',
+                      'Saulxures, Haute-Marne', 'Sayadaw U Tejaniya', 'Schiller Elementary School',
+                      'Scottish Games in North Carolina', 'Secrets of Sarlona', 'Self-disorder',
+                      'Sellers House (Pittsburgh, Pennsylvania)', 'Senate Constitutional Amendment No. 5',
+                      'Sex hormone receptor', 'Shahira Amin', 'Shantadurga Kalangutkarin Temple', 'Sheja Dzֳ¶',
+                      'Shields of the Revolution Council', 'Shooting at the 2008 Summer Olympics ג€“ Qualification',
+                      'Shoup\'s Mountain Battery', 'Shravana (hearing)', 'Sinking Creek Raid',
+                      'Sisters of the Company of Mary, Our Lady', 'Sitaramdas Omkarnath',
+                      'Solar eclipse of August 28, 1848', 'Solar eclipse of May 7, 1902',
+                      'Solar eclipse of October 31, 1902', 'South Dakota Legislative Research Council',
+                      'South Side High School (Pittsburgh, Pennsylvania)', 'South Side Market Building',
+                      'St. Clair Incline', 'St. Clair Village', 'St. Philomena\'s Church (Pittsburgh)',
+                      'Stadium Authority of the City of Pittsburgh', 'Stan Wawrinka career statistics',
+                      'Stanwix Street (Pittsburgh)', 'Steel Valley (Pittsburgh)', 'Stevens Elementary School',
+                      'Straumnes Air Station', 'Structure of the French Army in 1989',
+                      'Structure of the Hellenic Air Force', 'Subong', 'Super Singer Junior (season 2)',
+                      'Suqour al-Ezz', 'Syrian National Resistance', 'Table of stars with Bayer designations',
+                      'Tashi Tsering (Chenrezig Institute)',
+                      'Technological and industrial history of 20th-century Canada', 'Televisiֳ³ Digital Terrestre',
+                      'Testosterone acetate', 'Testosterone valerate', 'Thalamiflorae', 'The Atruaghin Clans',
+                      'The Boatman\'s Dance', 'The Gathering 2009', 'The Jew in the Lotus',
+                      'The Lives of Dutch painters and paintresses', 'The Mabuhay Channel', 'The Masked Marauders',
+                      'The Old Path', 'The Projection Booth', 'Third Bardor Tulku Rinpoche', 'Thiru Vi. Ka. Bridge',
+                      'Thubten Gyatso (Australian monk)', 'Timeline of Caen', 'Timeline of Cambridge, Massachusetts',
+                      'Timeline of Chennai history', 'Timeline of Clermont-Ferrand', 'Timeline of Copenhagen',
+                      'Timeline of Gold Coast, Queensland', 'Timeline of Grenoble', 'Timeline of healthcare in China',
+                      'Timeline of Homs', 'Timeline of Kaliningrad', 'Timeline of Madrid', 'Timeline of Mulhouse',
+                      'Timeline of Nantes', 'Timeline of Newark, New Jersey', 'Timeline of Nice',
+                      'Timeline of Portuguese history (Lusitania and Gallaecia)', 'Timeline of Reims',
+                      'Timeline of Rouen', 'Timeline of the 21st century',
+                      'Timeline of the feminist art movement in New Zealand', 'Timeline of Toulon',
+                      'Timeline of women in religion', 'Tool use by sea otters', 'Troy Hill Incline', 'Trudeau Landing',
+                      'Tsukuba FC', 'Udumbara (Buddhism)', 'UFC All Access', 'Ugraparipב¹›cchִ Sֵ«tra',
+                      'University of Pennsylvania College of Arts & Sciences',
+                      'University of Texas at Austin admissions controversy',
+                      'Uttar Pradesh Expressways Industrial Development Authority', 'Varennes-sur-Amance',
+                      'Vasilisa Kozhina', 'VER-3323', 'Vic Cianca', 'Victoria Hall (Pittsburgh)',
+                      'Virginia\'s 5th congressional district election, 2010',
+                      'Virginia\'s 8th congressional district election, 2010', 'Virtual Museum of Protestantism',
+                      'Vishva', 'Volazocine', 'Von Sternberg House', 'VP-44 (1951-91)', 'Walery Mroczkowski',
+                      'Walker-Ewing Log House', 'Walkman X Series', 'Wall Tax Road, Chennai', 'Walter Nowick',
+                      'Wansong Xingxiu', 'Warembori language', 'Waterfalls of North Georgia', 'Werner Leinfellner',
+                      'West End Branch of the Carnegie Library of Pittsburgh', 'Westinghouse Atom Smasher',
+                      'Westinghouse Memorial', 'William H. Davis (sheriff)', 'William Nyogen Yeo',
+                      'William Penn Snyder House', 'Willmar Air Force Station', 'Wilson Glacier',
+                      'WLQR (defunct 1450 AM)', 'Women\'s liberation movement in Europe', 'Women in Latin music',
+                      'Women in Philippine art', 'Women in the Philippine National Police', 'Wotuג€“Wolio languages',
+                      'Wukong (monk)', 'Wytheville Raid', 'Yogadב¹›ב¹£ב¹­isamuccaya', 'Zenitism']
 
     while True:
         yield random.choice(splitter_pages)
 
+
 def generate_rares():
-    #rare_pages = ['Athene_(disambiguation)',	'Alexandrists',	'The_Triumph_of_Time',	'Billion_(disambiguation)',	'Civil_law',	'Chronometer',	'Clabbers',	'Diaeresis',	'Eiffel',	'First-order_predicate',	'Four_Pillars',	'Gilbert_Cesbron',	'Groningen_(disambiguation)',	'Goodtimes_virus',	'George_Robert_Aberigh-Mackay',	'Image_and_Scanner_Interface_Specification',	'Jan_Berglin',	'Jabal_Ram',	'Jehoram',	'Joliet',	'Kocherג€“Debreג€“Semelaigne_syndrome',	'Large_technical_system',	'Martin_Luther_King_(disambiguation)',	'Value_(poker)',	'Perfect_crystal',	'Partizan_Press',	'Phoniatrics',	'Persistence',	'PackBits',	'Slavic',	'Second-order_predicate',	'Sleet',	'Samuel_Huntington',	'Lisa_Beamer',	'USS_Memphis',	'USS_Reuben_James',	'Bob_Welch',	'Thebes',	'Tuning',	'Dual_mode_propulsion_rocket',	'USS_Mustin',	'Adaptive_communications',	'Amplitude_distortion',	'Antenna_blind_cone',	'Bandwidth_compression',	'Data_access_arrangement',	'Double-sideband_reduced-carrier_transmission',	'Managed_object',	'Password_length_parameter',	'Power-law_index_profile',	'Stop_signal',	'System_integrity',	'Technical_control_facility',	'Zip-cord',	'USS_Skate',	'Developing_(film)',	'Mughal',	'Ganja',	'Straw_man_proposal',	'Ustad_Isa',	'Jassy',	'DARPA_TIDES_program',	'Schema',	'National_Liberation_Army',	'Clarke_County',	'Kent_M._Keith',	'Hamilton_County',	'Goddess_worship',	'Number_of_the_Beast_(disambiguation)',	'Aeroport',	'Cubomania',	'Peter_Murphy',	'Upcard',	'Clinton_County',	'Petropavlovsk',	'Teleportation_(disambiguation)',	'Fis_phenomenon',	'Suomi',	'Wolfsbane',	'ARITH-MATIC',	'MC_ADE',	'Maggotron',	'Illyricum',	'Mrs._Miniver\'s_problem',	'USS_Constellation',	'Dunedin_(disambiguation)',	'Fort_Nassau',	'Pashto_(disambiguation)',	'Perennial_(disambiguation)',	'James_W._Prescott',	'Abel-mizraim',	'Amaziah',	'Anab',	'South_American_economic_crisis_of_2002',	'Shecaniah',	'IBM_3720',	'Post-surrealism',	'Cologne:_From_the_Diary_of_Ray_and_Esther',	'Multiple_Sidosis',	'The_Nutshell',	'Trance_and_Dance_in_Bali',	'Palestinian_Society_for_the_Protection_of_Human_Rights',	'Salamis',	'Podarge',	'Sequenced_Packet_Exchange',	'Pan_(crater)',	'Xanthius',	'Phaedriades',	'Kickstart',	'Xingu',	'Shelby_County',	'Jacob\'s_Mouse',	'Theias',	'Pacemaker_(disambiguation)',	'Lace_card',	'Hesperis_(mythology)',	'Ardeas',	'Hylaeus_and_Rhoecus',	'Tegyrios',	'Lyncus',	'Fulgora_(mythology)',	'Mens',	'Suadela',	'Verminus',	'Artume',	'TNG',	'Hannover-Nordstadt',	'Vichama',	'Australian_(disambiguation)',	'Bagadjimbiri',	'Birrahgnooloo',	'Gnowee',	'Kidili',	'Wuriupranili',	'ִ€rohirohi',	'Atanua',	'Auahitֵ«roa',	'Ratumaibulu',	'Murimuria',	'Irawaru',	'Lona_(mythology)',	'Shakpana',	'Wroxham_Broad',	'Pacific_Maritime_Association',	'Norֳ°urmֳ½ri',	'Bure_Marshes_National_Nature_Reserve',	'National_nature_reserves_in_Bedfordshire',	'Quartet_in_Autumn',	'Harken_Energy_scandal',	'George_McClellan_(disambiguation)',	'Zablujena_generacija',	'Crystal_Lake_(Broward_County,_Florida)',	'Sluis-Aardenburg',	'New_Kuomintang_Alliance',	'Colfax_Township,_Michigan',	'Clinton,_New_York',	'Brady_Township,_Pennsylvania',	'Carroll_Township,_Pennsylvania',	'Centre_Township,_Pennsylvania',	'Clinton_Township,_Pennsylvania',	'Delaware_Township,_Pennsylvania',	'Earl_Township',	'Green_Township,_Pennsylvania',	'Hamilton_Township,_Pennsylvania',	'Limestone_Township,_Pennsylvania',	'Londonderry_Township,_Pennsylvania',	'Manheim_Township,_Pennsylvania',	'Morris_Township,_Pennsylvania',	'Newtown_Township,_Pennsylvania',	'Richland_Township,_Pennsylvania',	'Rush_Township,_Pennsylvania',	'Salem_Township,_Pennsylvania',	'Scott_Township,_Pennsylvania',	'Shenango_Township,_Pennsylvania',	'Smithfield_Township,_Pennsylvania',	'Spring_Township,_Pennsylvania',	'Summit_Township,_Pennsylvania',	'Barth',	'Jan_Bake',	'Mark_Retera',	'Bure_Valley_Path',	'Grֳ¦sted-Gilleleje',	'David_Stephenson_(born_1972)',	'Birmingham_Dribbler',	'Aaskov_Municipality',	'Superposition',	'Situational_offender',	'River_Stour',	'Bountiful_Harvest',	'Yorktown',	'Britten_(disambiguation)',	'Hippocratic_face',	'Brooke',	'Knֳ₪ck',	'Francisco_Castro_(Portuguese_footballer)',	'Robert_B._Hawkins_Jr.',	'Defect',	'Pareto_interpolation',	'Gandalf_(theorem_prover)',	'Topeka_(store)',	'From_Stump_to_Ship',	'River_Tame',	'Albanian',	'Httpd',	'Electronic_imager',	'Cheap_Truth',	'Guinea_Grass',	'Trial_Farm',	'Saddam_(name)',	'Aisha_Kahlil',	'HiDef',	'Vise_(disambiguation)',	'USS_Nebraska',	'Jeanne_Julia_Bartet',	'Surautomatism',	'Bֳ¸',	'Jupiter_Cantab',	'Silent_Snow,_Secret_Snow',	'Stadium_(disambiguation)',	'Nernst_heat_theorem',	'Dominican',	'On_Watanabe',	'Tsunashima_Ryֵsen',	'Teikoku_Bungaku',	'Structural_road_design',	'Ishibashi_Ningetsu',	'Enzo_Matsunaga',	'USS_Brooklyn',	'USS_Langley',	'Stammer_(disambiguation)',	'All-silica_fiber',	'Major_consensus_narrative',	'USS_New_Hampshire',	'The_Bad_Examples',	'USS_New_Jersey',	'LCFG',	'Uff!',	'Thomas_Fairfax_(disambiguation)',	'Stamitz',	'John_Sanford',	'Derek_V._Smith',	'Tiki_Data',	'Fluorescent_multilayer_card',	'Gordon_S._Fahrni',	'Shuntֵ',	'AVIDAC',	'Istanbul_cymbals',	'Treatment',	'South_East_Point',	'Babel_(newspaper)',	'USS_Tarawa',	'Calisia',	'Stonehouse_Creek',	'William_B._Ellern',	'USS_Badger',	'Laban_Ainsworth',	'John_Morton-Finney',	'The_Nigger',	'Everybody\'s_Autobiography',	'Twilight_Club',	'USS_Astoria',	'Bobby_Pacho',	'Lunar_conjunction',	'Andrew_George_Burry',	'Prime_reciprocal_magic_square',	'Uncle_and_His_Detective',	'USS_Tiger_Shark',	'Faculty',	'Oִuz_Yִ±lmaz',	'Santa_Monica_(disambiguation)',	'Hellerud',	'Names_(disambiguation)',	'Hsiangג€“Lawson\'s_conjecture',	'Victory_Song_(horse)',	'Security_for_costs',	'Soviet_submarine_K-129',	'Paul_Petard',	'Generalised_logistic_function',	'Wort_(disambiguation)',	'Floradora',	'Set_and_drift',	'Meaningless_statement',	'Indigenous',	'The_Naked_Eye_(1956_film)',	'Charles_Ollivant',	'Gaston_Briart',	'Blanketing',	'Larry_Burns_(General_Motors)',	'Acrylic',	'Holy_Wood',	'Shadow_government',	'Container_(disambiguation)',	'Free_enterprise_(disambiguation)',	'Buy',	'Cryoelectronics',	'Anna_Santisteban',	'Affect',	'Elisabeth_of_Austria',	'Advice',	'TenDRA_Distribution_Format',	'Public_Schools_Act',	'Thurston_elliptization_conjecture',	'Numerical_sight-singing',	'Aquila_Romanus',	'Brute_force',	'Capital_Adequacy_Directive',	'Medallion_Records',	'Caron_(disambiguation)',	'Evil_Empire',	'Tia_(goddess)',	'Mona_Font',	'Sensory',	'More_Joy_in_Heaven',	'San_Antonio,_Cayo',	'Morgan_County',	'GE_multifactoral_analysis',	'Masculine_(disambiguation)',	'Feminine_(disambiguation)',	'Gabriel_Parra',	'Bormann',	'Fifth_Republic',	'Women_Thrive_Worldwide',	'Bath_brick',	'Pre-flashing',	'Restricted_product',	'George_Amabile',	'Paullus',	'Macrovascular_disease',	'Malvinas_(disambiguation)',	'Chinese_tabloid',	'Sound_system',	'Piru_(spirit)',	'Robert_Budde',	'New_Zealand_Prostitutes\'_Collective',	'Eof',	'Richard_Jobson_(explorer)',	'Stress_test',	'Il_Risorgimento_(newspaper)',	'Sir_William_Blackstone_(statue)',	'Threat_of_force_(public_international_law)',	'Saint_Mary\'s_River',	'Plachutta',	'Kjelfossen',	'Tyssestrengene',	'Blackwardine',	'Alan_Haig-Brown',	'USS_Cumberland',	'USS_Denver',	'Battle_of_Quebec',	'Socialist_Unity_Party',	'A_Gift_Upon_the_Shore',	'Peijaiset',	'Gillingham',	'HMS_Upholder',	'Mixed_franking',	'Bruun\'s_FFT_algorithm',	'In-band_adjacent-channel',	'Intersection_syndrome',	'Saint-Jean_County,_Quebec',	'Ardagh',	'Uppland_County',	'Timetable_(disambiguation)',	'4VSB',	'2VSB',	'Daniel_Kriegman',	'Situationist_Antinational',	'Tim_Lander',	'Gwenllian',	'Drift_migration',	'What_More_Can_I_Ask?',	'Email_art',	'Nicole_Markotic',	'Shirlee_Matheson',	'Symbolics_Document_Examiner',	'La_Rochefoucauld',	'Charles_Gray',	'Gurcharan_Rampuri',	'National_Health_Planning_and_Resources_Development_Act',	'El_Ausente',	'Commute',	'Richard_Stevenson_(poet)',	'Dan_Miller',	'Norwegian_Student_Choral_Society',	'All_Species_Foundation',	'South_Branch',	'Pariah_Press',	'Hotter\'N_Hell_Hundred',	'Obfuscated_Perl_Contest',	'Negrita_Jayde',	'Chinese_nationality',	'Consejo',	'Thomas_Tanner_(writer)',	'Watermedia',	'Evar_Saar',	'Alomancy',	'Benton_County',	'Tursib',	'Gorki',	'Shiroka_Polyana',	'Midwest_Christian_Outreach',	'Adamantine_Spar',	'Lossless_Transform_Audio_Compression',	'Background_(astronomy)',	'Richard_Wawro',	'Irma_Brandeis',	'Bentonville',	'Bruckner_(disambiguation)',	'Tiberius_Sempronius_Gracchus',	'Appel',	'Smale',	'Laura_Recovery_Center',	'Shaded-pole_synchronous_motor',	'Frank_Houben',	'USS_Anzio',	'Merchandization',	'Meiklejohn_Civil_Liberties_Institute',	'Eduard_Haas',	'Sacred_band',	'Eddie_Lֳ³pez_(boxer)',	'Good_Neighbour_Policy_(horse_racing)',	'Logical_topology',	'Biltmore_Records',	'Kinthup',	'Cֳ₪sar_Rֳ¼stow',	'Dial_Records',	'Gyeongbu',	'Subtle_cardinal',	'TimeShard',	'Gimpo_Line',	'Lakeside_Records',	'Freshwater_shark',	'Sitwell',	'Geir_Barvik',	'Universal_dialectic',	'Aivaras',	'Pulper',	'Larousse',	'Treatise_(music)',	'Fourth_Republic',	'Broadcast_Twelve_Records',	'Schirmer_Records',	'Hacִ±osman,_Manyas',	'The_Rockies_(disambiguation)',	'Bel-Air_(Sanford)',	'Gyro',	'Carlea,_Saskatchewan',	'Mean_deviation',	'William_Hearst',	'Makoto_Tomioka',	'Priszm',	'Ear_tuft',	'Foreign_Correspondents\'_Club,_Phnom_Penh',	'Ryosuke_Cohen',	'Ernest_Maas',	'Laplace_transform_applied_to_differential_equations',	'Resource_Directory_Description_Language',	'Rinken_Band',	'Tommy_Solomon',	'Oriental_Sports_Daily',	'Oscar_Kjellberg',	'Akizuki_Tanezane',	'Herbede',	'Nagoya,_Saga',	'Chris_Carter',	'Norrland_County',	'Gֳ¶ta',	'Unicoherent_space',	'William_Robert_Renshaw',	'Colombeau_algebra',	'Change_the_World_Without_Taking_Power',	'Rank_(computer_programming)',	'Perle',	'Bank_of_America_Plaza',	'Brahma_(disambiguation)',	'Bobbin_boy',	'The_Secret_of_the_Universe',	'Rojam',	'Portable_communications_device',	'Artaxerxes',	'Anyonic_Lie_algebra',	'Somali',	'Multimagic_square',	'Wire_loop_game',	'Antifa',	'Crumb',	'Tropic_(disambiguation)',	'Hermia_(Finland)',	'Bai_Hua',	'Midian_war',	'Baluchi',	'Kedermister_Library',	'Decalogue_(disambiguation)',	'Sergei_Ivanovich_Tiulpanov',	'The_Mississauga_Horse',	'Hicks_(disambiguation)',	'Nauru_Pacific_Line',	'Ordinance_(university)',	'Water_lily',	'Captain_Submarine',	'Przemyֵ›l_(disambiguation)',	'Robert_Kite',	'Meramec',	'Richard_Grosvenor',	'Commie_Awards',	'Kalinovka,_Khomutovsky_District,_Kursk_Oblast',	'Office_of_Special_Investigations',	'Scarcity_value',	'Free_floating_screed',	'Sons_of_Poland',	'Chairman_of_the_Board_(disambiguation)',	'Weak_consistency',	'Maven_(Scrabble)',	'Muncie',	'Shower-curtain_effect',	'Product_description',	'Abbey_of_St._Jean_des_Vignes',	'Cummings',	'Riksdagsmusiken',	'Engel',	'Santorum_(disambiguation)',	'Luitgard_(Frankish_queen)',	'International_Pentecostal_Church_of_Christ',	'Fixed-point_lemma_for_normal_functions',	'USS_Bonefish',	'USS_Holland',	'Peltier',	'Tollbooth',	'Jack_Cohen',	'Elmwood_Park',	'Daarlerveen',	'Republican_People\'s_Party',	'United_Party',	'USS_Alexander_Hamilton',	'Succession_planting',	'Jiefang_Subdistrict,_Zhoushan',	'Edward_Hartman',	'Desmond_Keith_Carter',	'Lynnville',	'Bible_box',	'Gether',	'Operation_Adler',	'British-American_Parliamentary_Group',	'Bisbee_Blue',	'Piano_Sonatas_Nos._13_and_14_(Beethoven)',	'Aweida',	'Agency_for_Nuclear_Projects',	'Caguax',	'Friedrich_August_Berthold_Nitzsch',	'Upper_Weald',	'Robert_Atkins',	'HMS_Manchester',	'Ronald_Campbell',	'Carlton_House_desk',	'Histochemical_tracer',	'The_Breetles',	'Papandreou',	'Grammy_Award_for_Best_New_Country_&_Western_Artist',	'Socialism_from_below',	'Content_package',	'Ostrֳ³w_Island',	'Islands_of_Gdaֵ„sk',	'Quarantine_(Egan_novel)',	'USS_Coral_Sea',	'USS_Cowpens',	'USS_Iwo_Jima',	'USS_Valley_Forge',	'USS_Wright',	'Technique',	'Jenny_Jones',	'Heronian_tetrahedron',	'Ezboard',	'Otterton_Mill',	'HMS_Flamingo',	'HMAS_Stalwart',	'HMAS_Swan',	'Literary_Machines',	'Cayleyג€“Galt_Tariff',	'Rooney',	'Richard_Carpenter',	'AS/400_object',	'HMS_Oberon',	'USS_Charlotte',	'USS_Chattanooga',	'Nomen_mysticum',	'2_mm_scale',	'USS_Albemarle',	'USS_Archerfish',	'USS_Catawba',	'Moqua_Well',	'51st_Division',	'California_4th_Grade_Mission_Project',	'Henri_Maillardet',	'Dara_Nur_al-Din',	'Kamel_al-Kilani',	'Masaryk',	'Karzai_(surname)',	'Michael_Morris',	'Expert_determination',	'Irana_Esperantisto',	'Tullio_Moneta']
-    rare_pages = ['Athene (disambiguation)',	'Alexandrists',	'The Triumph of Time',	'Billion (disambiguation)',	'Civil law',	'Chronometer',	'Clabbers',	'Diaeresis',	'Eiffel',	'First-order predicate',	'Four Pillars',	'Gilbert Cesbron',	'Groningen (disambiguation)',	'Goodtimes virus',	'George Robert Aberigh-Mackay',	'Image and Scanner Interface Specification',	'Jan Berglin',	'Jabal Ram',	'Jehoram',	'Joliet',	'Kocherג€“Debreג€“Semelaigne syndrome',	'Large technical system',	'Martin Luther King (disambiguation)',	'Value (poker)',	'Perfect crystal',	'Partizan Press',	'Phoniatrics',	'Persistence',	'PackBits',	'Slavic',	'Second-order predicate',	'Sleet',	'Samuel Huntington',	'Lisa Beamer',	'USS Memphis',	'USS Reuben James',	'Bob Welch',	'Thebes',	'Tuning',	'Dual mode propulsion rocket',	'USS Mustin',	'Adaptive communications',	'Amplitude distortion',	'Antenna blind cone',	'Bandwidth compression',	'Data access arrangement',	'Double-sideband reduced-carrier transmission',	'Managed object',	'Password length parameter',	'Power-law index profile',	'Stop signal',	'System integrity',	'Technical control facility',	'Zip-cord',	'USS Skate',	'Developing (film)',	'Mughal',	'Ganja',	'Straw man proposal',	'Ustad Isa',	'Jassy',	'DARPA TIDES program',	'Schema',	'National Liberation Army',	'Clarke County',	'Kent M. Keith',	'Hamilton County',	'Goddess worship',	'Number of the Beast (disambiguation)',	'Aeroport',	'Cubomania',	'Peter Murphy',	'Upcard',	'Clinton County',	'Petropavlovsk',	'Teleportation (disambiguation)',	'Fis phenomenon',	'Suomi',	'Wolfsbane',	'ARITH-MATIC',	'MC ADE',	'Maggotron',	'Illyricum',	'Mrs. Miniver\'s problem',	'USS Constellation',	'Dunedin (disambiguation)',	'Fort Nassau',	'Pashto (disambiguation)',	'Perennial (disambiguation)',	'James W. Prescott',	'Abel-mizraim',	'Amaziah',	'Anab',	'South American economic crisis of 2002',	'Shecaniah',	'IBM 3720',	'Post-surrealism',	'Cologne: From the Diary of Ray and Esther',	'Multiple Sidosis',	'The Nutshell',	'Trance and Dance in Bali',	'Palestinian Society for the Protection of Human Rights',	'Salamis',	'Podarge',	'Sequenced Packet Exchange',	'Pan (crater)',	'Xanthius',	'Phaedriades',	'Kickstart',	'Xingu',	'Shelby County',	'Jacob\'s Mouse',	'Theias',	'Pacemaker (disambiguation)',	'Lace card',	'Hesperis (mythology)',	'Ardeas',	'Hylaeus and Rhoecus',	'Tegyrios',	'Lyncus',	'Fulgora (mythology)',	'Mens',	'Suadela',	'Verminus',	'Artume',	'TNG',	'Hannover-Nordstadt',	'Vichama',	'Australian (disambiguation)',	'Bagadjimbiri',	'Birrahgnooloo',	'Gnowee',	'Kidili',	'Wuriupranili',	'ִ€rohirohi',	'Atanua',	'Auahitֵ«roa',	'Ratumaibulu',	'Murimuria',	'Irawaru',	'Lona (mythology)',	'Shakpana',	'Wroxham Broad',	'Pacific Maritime Association',	'Norֳ°urmֳ½ri',	'Bure Marshes National Nature Reserve',	'National nature reserves in Bedfordshire',	'Quartet in Autumn',	'Harken Energy scandal',	'George McClellan (disambiguation)',	'Zablujena generacija',	'Crystal Lake (Broward County, Florida)',	'Sluis-Aardenburg',	'New Kuomintang Alliance',	'Colfax Township, Michigan',	'Clinton, New York',	'Brady Township, Pennsylvania',	'Carroll Township, Pennsylvania',	'Centre Township, Pennsylvania',	'Clinton Township, Pennsylvania',	'Delaware Township, Pennsylvania',	'Earl Township',	'Green Township, Pennsylvania',	'Hamilton Township, Pennsylvania',	'Limestone Township, Pennsylvania',	'Londonderry Township, Pennsylvania',	'Manheim Township, Pennsylvania',	'Morris Township, Pennsylvania',	'Newtown Township, Pennsylvania',	'Richland Township, Pennsylvania',	'Rush Township, Pennsylvania',	'Salem Township, Pennsylvania',	'Scott Township, Pennsylvania',	'Shenango Township, Pennsylvania',	'Smithfield Township, Pennsylvania',	'Spring Township, Pennsylvania',	'Summit Township, Pennsylvania',	'Barth',	'Jan Bake',	'Mark Retera',	'Bure Valley Path',	'Grֳ¦sted-Gilleleje',	'David Stephenson (born 1972)',	'Birmingham Dribbler',	'Aaskov Municipality',	'Superposition',	'Situational offender',	'River Stour',	'Bountiful Harvest',	'Yorktown',	'Britten (disambiguation)',	'Hippocratic face',	'Brooke',	'Knֳ₪ck',	'Francisco Castro (Portuguese footballer)',	'Robert B. Hawkins Jr.',	'Defect',	'Pareto interpolation',	'Gandalf (theorem prover)',	'Topeka (store)',	'From Stump to Ship',	'River Tame',	'Albanian',	'Httpd',	'Electronic imager',	'Cheap Truth',	'Guinea Grass',	'Trial Farm',	'Saddam (name)',	'Aisha Kahlil',	'HiDef',	'Vise (disambiguation)',	'USS Nebraska',	'Jeanne Julia Bartet',	'Surautomatism',	'Bֳ¸',	'Jupiter Cantab',	'Silent Snow, Secret Snow',	'Stadium (disambiguation)',	'Nernst heat theorem',	'Dominican',	'On Watanabe',	'Tsunashima Ryֵsen',	'Teikoku Bungaku',	'Structural road design',	'Ishibashi Ningetsu',	'Enzo Matsunaga',	'USS Brooklyn',	'USS Langley',	'Stammer (disambiguation)',	'All-silica fiber',	'Major consensus narrative',	'USS New Hampshire',	'The Bad Examples',	'USS New Jersey',	'LCFG',	'Uff!',	'Thomas Fairfax (disambiguation)',	'Stamitz',	'John Sanford',	'Derek V. Smith',	'Tiki Data',	'Fluorescent multilayer card',	'Gordon S. Fahrni',	'Shuntֵ',	'AVIDAC',	'Istanbul cymbals',	'Treatment',	'South East Point',	'Babel (newspaper)',	'USS Tarawa',	'Calisia',	'Stonehouse Creek',	'William B. Ellern',	'USS Badger',	'Laban Ainsworth',	'John Morton-Finney',	'The Nigger',	'Everybody\'s Autobiography',	'Twilight Club',	'USS Astoria',	'Bobby Pacho',	'Lunar conjunction',	'Andrew George Burry',	'Prime reciprocal magic square',	'Uncle and His Detective',	'USS Tiger Shark',	'Faculty',	'Oִuz Yִ±lmaz',	'Santa Monica (disambiguation)',	'Hellerud',	'Names (disambiguation)',	'Hsiangג€“Lawson\'s conjecture',	'Victory Song (horse)',	'Security for costs',	'Soviet submarine K-129',	'Paul Petard',	'Generalised logistic function',	'Wort (disambiguation)',	'Floradora',	'Set and drift',	'Meaningless statement',	'Indigenous',	'The Naked Eye (1956 film)',	'Charles Ollivant',	'Gaston Briart',	'Blanketing',	'Larry Burns (General Motors)',	'Acrylic',	'Holy Wood',	'Shadow government',	'Container (disambiguation)',	'Free enterprise (disambiguation)',	'Buy',	'Cryoelectronics',	'Anna Santisteban',	'Affect',	'Elisabeth of Austria',	'Advice',	'TenDRA Distribution Format',	'Public Schools Act',	'Thurston elliptization conjecture',	'Numerical sight-singing',	'Aquila Romanus',	'Brute force',	'Capital Adequacy Directive',	'Medallion Records',	'Caron (disambiguation)',	'Evil Empire',	'Tia (goddess)',	'Mona Font',	'Sensory',	'More Joy in Heaven',	'San Antonio, Cayo',	'Morgan County',	'GE multifactoral analysis',	'Masculine (disambiguation)',	'Feminine (disambiguation)',	'Gabriel Parra',	'Bormann',	'Fifth Republic',	'Women Thrive Worldwide',	'Bath brick',	'Pre-flashing',	'Restricted product',	'George Amabile',	'Paullus',	'Macrovascular disease',	'Malvinas (disambiguation)',	'Chinese tabloid',	'Sound system',	'Piru (spirit)',	'Robert Budde',	'New Zealand Prostitutes\' Collective',	'Eof',	'Richard Jobson (explorer)',	'Stress test',	'Il Risorgimento (newspaper)',	'Sir William Blackstone (statue)',	'Threat of force (public international law)',	'Saint Mary\'s River',	'Plachutta',	'Kjelfossen',	'Tyssestrengene',	'Blackwardine',	'Alan Haig-Brown',	'USS Cumberland',	'USS Denver',	'Battle of Quebec',	'Socialist Unity Party',	'A Gift Upon the Shore',	'Peijaiset',	'Gillingham',	'HMS Upholder',	'Mixed franking',	'Bruun\'s FFT algorithm',	'In-band adjacent-channel',	'Intersection syndrome',	'Saint-Jean County, Quebec',	'Ardagh',	'Uppland County',	'Timetable (disambiguation)',	'4VSB',	'2VSB',	'Daniel Kriegman',	'Situationist Antinational',	'Tim Lander',	'Gwenllian',	'Drift migration',	'What More Can I Ask?',	'Email art',	'Nicole Markotic',	'Shirlee Matheson',	'Symbolics Document Examiner',	'La Rochefoucauld',	'Charles Gray',	'Gurcharan Rampuri',	'National Health Planning and Resources Development Act',	'El Ausente',	'Commute',	'Richard Stevenson (poet)',	'Dan Miller',	'Norwegian Student Choral Society',	'All Species Foundation',	'South Branch',	'Pariah Press',	'Hotter\'N Hell Hundred',	'Obfuscated Perl Contest',	'Negrita Jayde',	'Chinese nationality',	'Consejo',	'Thomas Tanner (writer)',	'Watermedia',	'Evar Saar',	'Alomancy',	'Benton County',	'Tursib',	'Gorki',	'Shiroka Polyana',	'Midwest Christian Outreach',	'Adamantine Spar',	'Lossless Transform Audio Compression',	'Background (astronomy)',	'Richard Wawro',	'Irma Brandeis',	'Bentonville',	'Bruckner (disambiguation)',	'Tiberius Sempronius Gracchus',	'Appel',	'Smale',	'Laura Recovery Center',	'Shaded-pole synchronous motor',	'Frank Houben',	'USS Anzio',	'Merchandization',	'Meiklejohn Civil Liberties Institute',	'Eduard Haas',	'Sacred band',	'Eddie Lֳ³pez (boxer)',	'Good Neighbour Policy (horse racing)',	'Logical topology',	'Biltmore Records',	'Kinthup',	'Cֳ₪sar Rֳ¼stow',	'Dial Records',	'Gyeongbu',	'Subtle cardinal',	'TimeShard',	'Gimpo Line',	'Lakeside Records',	'Freshwater shark',	'Sitwell',	'Geir Barvik',	'Universal dialectic',	'Aivaras',	'Pulper',	'Larousse',	'Treatise (music)',	'Fourth Republic',	'Broadcast Twelve Records',	'Schirmer Records',	'Hacִ±osman, Manyas',	'The Rockies (disambiguation)',	'Bel-Air (Sanford)',	'Gyro',	'Carlea, Saskatchewan',	'Mean deviation',	'William Hearst',	'Makoto Tomioka',	'Priszm',	'Ear tuft',	'Foreign Correspondents\' Club, Phnom Penh',	'Ryosuke Cohen',	'Ernest Maas',	'Laplace transform applied to differential equations',	'Resource Directory Description Language',	'Rinken Band',	'Tommy Solomon',	'Oriental Sports Daily',	'Oscar Kjellberg',	'Akizuki Tanezane',	'Herbede',	'Nagoya, Saga',	'Chris Carter',	'Norrland County',	'Gֳ¶ta',	'Unicoherent space',	'William Robert Renshaw',	'Colombeau algebra',	'Change the World Without Taking Power',	'Rank (computer programming)',	'Perle',	'Bank of America Plaza',	'Brahma (disambiguation)',	'Bobbin boy',	'The Secret of the Universe',	'Rojam',	'Portable communications device',	'Artaxerxes',	'Anyonic Lie algebra',	'Somali',	'Multimagic square',	'Wire loop game',	'Antifa',	'Crumb',	'Tropic (disambiguation)',	'Hermia (Finland)',	'Bai Hua',	'Midian war',	'Baluchi',	'Kedermister Library',	'Decalogue (disambiguation)',	'Sergei Ivanovich Tiulpanov',	'The Mississauga Horse',	'Hicks (disambiguation)',	'Nauru Pacific Line',	'Ordinance (university)',	'Water lily',	'Captain Submarine',	'Przemyֵ›l (disambiguation)',	'Robert Kite',	'Meramec',	'Richard Grosvenor',	'Commie Awards',	'Kalinovka, Khomutovsky District, Kursk Oblast',	'Office of Special Investigations',	'Scarcity value',	'Free floating screed',	'Sons of Poland',	'Chairman of the Board (disambiguation)',	'Weak consistency',	'Maven (Scrabble)',	'Muncie',	'Shower-curtain effect',	'Product description',	'Abbey of St. Jean des Vignes',	'Cummings',	'Riksdagsmusiken',	'Engel',	'Santorum (disambiguation)',	'Luitgard (Frankish queen)',	'International Pentecostal Church of Christ',	'Fixed-point lemma for normal functions',	'USS Bonefish',	'USS Holland',	'Peltier',	'Tollbooth',	'Jack Cohen',	'Elmwood Park',	'Daarlerveen',	'Republican People\'s Party',	'United Party',	'USS Alexander Hamilton',	'Succession planting',	'Jiefang Subdistrict, Zhoushan',	'Edward Hartman',	'Desmond Keith Carter',	'Lynnville',	'Bible box',	'Gether',	'Operation Adler',	'British-American Parliamentary Group',	'Bisbee Blue',	'Piano Sonatas Nos. 13 and 14 (Beethoven)',	'Aweida',	'Agency for Nuclear Projects',	'Caguax',	'Friedrich August Berthold Nitzsch',	'Upper Weald',	'Robert Atkins',	'HMS Manchester',	'Ronald Campbell',	'Carlton House desk',	'Histochemical tracer',	'The Breetles',	'Papandreou',	'Grammy Award for Best New Country & Western Artist',	'Socialism from below',	'Content package',	'Ostrֳ³w Island',	'Islands of Gdaֵ„sk',	'Quarantine (Egan novel)',	'USS Coral Sea',	'USS Cowpens',	'USS Iwo Jima',	'USS Valley Forge',	'USS Wright',	'Technique',	'Jenny Jones',	'Heronian tetrahedron',	'Ezboard',	'Otterton Mill',	'HMS Flamingo',	'HMAS Stalwart',	'HMAS Swan',	'Literary Machines',	'Cayleyג€“Galt Tariff',	'Rooney',	'Richard Carpenter',	'AS/400 object',	'HMS Oberon',	'USS Charlotte',	'USS Chattanooga',	'Nomen mysticum',	'2 mm scale',	'USS Albemarle',	'USS Archerfish',	'USS Catawba',	'Moqua Well',	'51st Division',	'California 4th Grade Mission Project',	'Henri Maillardet',	'Dara Nur al-Din',	'Kamel al-Kilani',	'Masaryk',	'Karzai (surname)',	'Michael Morris',	'Expert determination',	'Irana Esperantisto',	'Tullio Moneta']
+    rare_pages = ['Athene (disambiguation)', 'Alexandrists', 'The Triumph of Time', 'Billion (disambiguation)',
+                  'Civil law', 'Chronometer', 'Clabbers', 'Diaeresis', 'Eiffel', 'First-order predicate',
+                  'Four Pillars', 'Gilbert Cesbron', 'Groningen (disambiguation)', 'Goodtimes virus',
+                  'George Robert Aberigh-Mackay', 'Image and Scanner Interface Specification', 'Jan Berglin',
+                  'Jabal Ram', 'Jehoram', 'Joliet', 'Kocherג€“Debreג€“Semelaigne syndrome', 'Large technical system',
+                  'Martin Luther King (disambiguation)', 'Value (poker)', 'Perfect crystal', 'Partizan Press',
+                  'Phoniatrics', 'Persistence', 'PackBits', 'Slavic', 'Second-order predicate', 'Sleet',
+                  'Samuel Huntington', 'Lisa Beamer', 'USS Memphis', 'USS Reuben James', 'Bob Welch', 'Thebes',
+                  'Tuning', 'Dual mode propulsion rocket', 'USS Mustin', 'Adaptive communications',
+                  'Amplitude distortion', 'Antenna blind cone', 'Bandwidth compression', 'Data access arrangement',
+                  'Double-sideband reduced-carrier transmission', 'Managed object', 'Password length parameter',
+                  'Power-law index profile', 'Stop signal', 'System integrity', 'Technical control facility',
+                  'Zip-cord', 'USS Skate', 'Developing (film)', 'Mughal', 'Ganja', 'Straw man proposal', 'Ustad Isa',
+                  'Jassy', 'DARPA TIDES program', 'Schema', 'National Liberation Army', 'Clarke County',
+                  'Kent M. Keith', 'Hamilton County', 'Goddess worship', 'Number of the Beast (disambiguation)',
+                  'Aeroport', 'Cubomania', 'Peter Murphy', 'Upcard', 'Clinton County', 'Petropavlovsk',
+                  'Teleportation (disambiguation)', 'Fis phenomenon', 'Suomi', 'Wolfsbane', 'ARITH-MATIC', 'MC ADE',
+                  'Maggotron', 'Illyricum', 'Mrs. Miniver\'s problem', 'USS Constellation', 'Dunedin (disambiguation)',
+                  'Fort Nassau', 'Pashto (disambiguation)', 'Perennial (disambiguation)', 'James W. Prescott',
+                  'Abel-mizraim', 'Amaziah', 'Anab', 'South American economic crisis of 2002', 'Shecaniah', 'IBM 3720',
+                  'Post-surrealism', 'Cologne: From the Diary of Ray and Esther', 'Multiple Sidosis', 'The Nutshell',
+                  'Trance and Dance in Bali', 'Palestinian Society for the Protection of Human Rights', 'Salamis',
+                  'Podarge', 'Sequenced Packet Exchange', 'Pan (crater)', 'Xanthius', 'Phaedriades', 'Kickstart',
+                  'Xingu', 'Shelby County', 'Jacob\'s Mouse', 'Theias', 'Pacemaker (disambiguation)', 'Lace card',
+                  'Hesperis (mythology)', 'Ardeas', 'Hylaeus and Rhoecus', 'Tegyrios', 'Lyncus', 'Fulgora (mythology)',
+                  'Mens', 'Suadela', 'Verminus', 'Artume', 'TNG', 'Hannover-Nordstadt', 'Vichama',
+                  'Australian (disambiguation)', 'Bagadjimbiri', 'Birrahgnooloo', 'Gnowee', 'Kidili', 'Wuriupranili',
+                  'ִ€rohirohi', 'Atanua', 'Auahitֵ«roa', 'Ratumaibulu', 'Murimuria', 'Irawaru', 'Lona (mythology)',
+                  'Shakpana', 'Wroxham Broad', 'Pacific Maritime Association', 'Norֳ°urmֳ½ri',
+                  'Bure Marshes National Nature Reserve', 'National nature reserves in Bedfordshire',
+                  'Quartet in Autumn', 'Harken Energy scandal', 'George McClellan (disambiguation)',
+                  'Zablujena generacija', 'Crystal Lake (Broward County, Florida)', 'Sluis-Aardenburg',
+                  'New Kuomintang Alliance', 'Colfax Township, Michigan', 'Clinton, New York',
+                  'Brady Township, Pennsylvania', 'Carroll Township, Pennsylvania', 'Centre Township, Pennsylvania',
+                  'Clinton Township, Pennsylvania', 'Delaware Township, Pennsylvania', 'Earl Township',
+                  'Green Township, Pennsylvania', 'Hamilton Township, Pennsylvania', 'Limestone Township, Pennsylvania',
+                  'Londonderry Township, Pennsylvania', 'Manheim Township, Pennsylvania',
+                  'Morris Township, Pennsylvania', 'Newtown Township, Pennsylvania', 'Richland Township, Pennsylvania',
+                  'Rush Township, Pennsylvania', 'Salem Township, Pennsylvania', 'Scott Township, Pennsylvania',
+                  'Shenango Township, Pennsylvania', 'Smithfield Township, Pennsylvania',
+                  'Spring Township, Pennsylvania', 'Summit Township, Pennsylvania', 'Barth', 'Jan Bake', 'Mark Retera',
+                  'Bure Valley Path', 'Grֳ¦sted-Gilleleje', 'David Stephenson (born 1972)', 'Birmingham Dribbler',
+                  'Aaskov Municipality', 'Superposition', 'Situational offender', 'River Stour', 'Bountiful Harvest',
+                  'Yorktown', 'Britten (disambiguation)', 'Hippocratic face', 'Brooke', 'Knֳ₪ck',
+                  'Francisco Castro (Portuguese footballer)', 'Robert B. Hawkins Jr.', 'Defect', 'Pareto interpolation',
+                  'Gandalf (theorem prover)', 'Topeka (store)', 'From Stump to Ship', 'River Tame', 'Albanian', 'Httpd',
+                  'Electronic imager', 'Cheap Truth', 'Guinea Grass', 'Trial Farm', 'Saddam (name)', 'Aisha Kahlil',
+                  'HiDef', 'Vise (disambiguation)', 'USS Nebraska', 'Jeanne Julia Bartet', 'Surautomatism', 'Bֳ¸',
+                  'Jupiter Cantab', 'Silent Snow, Secret Snow', 'Stadium (disambiguation)', 'Nernst heat theorem',
+                  'Dominican', 'On Watanabe', 'Tsunashima Ryֵsen', 'Teikoku Bungaku', 'Structural road design',
+                  'Ishibashi Ningetsu', 'Enzo Matsunaga', 'USS Brooklyn', 'USS Langley', 'Stammer (disambiguation)',
+                  'All-silica fiber', 'Major consensus narrative', 'USS New Hampshire', 'The Bad Examples',
+                  'USS New Jersey', 'LCFG', 'Uff!', 'Thomas Fairfax (disambiguation)', 'Stamitz', 'John Sanford',
+                  'Derek V. Smith', 'Tiki Data', 'Fluorescent multilayer card', 'Gordon S. Fahrni', 'Shuntֵ', 'AVIDAC',
+                  'Istanbul cymbals', 'Treatment', 'South East Point', 'Babel (newspaper)', 'USS Tarawa', 'Calisia',
+                  'Stonehouse Creek', 'William B. Ellern', 'USS Badger', 'Laban Ainsworth', 'John Morton-Finney',
+                  'The Nigger', 'Everybody\'s Autobiography', 'Twilight Club', 'USS Astoria', 'Bobby Pacho',
+                  'Lunar conjunction', 'Andrew George Burry', 'Prime reciprocal magic square',
+                  'Uncle and His Detective', 'USS Tiger Shark', 'Faculty', 'Oִuz Yִ±lmaz',
+                  'Santa Monica (disambiguation)', 'Hellerud', 'Names (disambiguation)',
+                  'Hsiangג€“Lawson\'s conjecture', 'Victory Song (horse)', 'Security for costs',
+                  'Soviet submarine K-129', 'Paul Petard', 'Generalised logistic function', 'Wort (disambiguation)',
+                  'Floradora', 'Set and drift', 'Meaningless statement', 'Indigenous', 'The Naked Eye (1956 film)',
+                  'Charles Ollivant', 'Gaston Briart', 'Blanketing', 'Larry Burns (General Motors)', 'Acrylic',
+                  'Holy Wood', 'Shadow government', 'Container (disambiguation)', 'Free enterprise (disambiguation)',
+                  'Buy', 'Cryoelectronics', 'Anna Santisteban', 'Affect', 'Elisabeth of Austria', 'Advice',
+                  'TenDRA Distribution Format', 'Public Schools Act', 'Thurston elliptization conjecture',
+                  'Numerical sight-singing', 'Aquila Romanus', 'Brute force', 'Capital Adequacy Directive',
+                  'Medallion Records', 'Caron (disambiguation)', 'Evil Empire', 'Tia (goddess)', 'Mona Font', 'Sensory',
+                  'More Joy in Heaven', 'San Antonio, Cayo', 'Morgan County', 'GE multifactoral analysis',
+                  'Masculine (disambiguation)', 'Feminine (disambiguation)', 'Gabriel Parra', 'Bormann',
+                  'Fifth Republic', 'Women Thrive Worldwide', 'Bath brick', 'Pre-flashing', 'Restricted product',
+                  'George Amabile', 'Paullus', 'Macrovascular disease', 'Malvinas (disambiguation)', 'Chinese tabloid',
+                  'Sound system', 'Piru (spirit)', 'Robert Budde', 'New Zealand Prostitutes\' Collective', 'Eof',
+                  'Richard Jobson (explorer)', 'Stress test', 'Il Risorgimento (newspaper)',
+                  'Sir William Blackstone (statue)', 'Threat of force (public international law)',
+                  'Saint Mary\'s River', 'Plachutta', 'Kjelfossen', 'Tyssestrengene', 'Blackwardine', 'Alan Haig-Brown',
+                  'USS Cumberland', 'USS Denver', 'Battle of Quebec', 'Socialist Unity Party', 'A Gift Upon the Shore',
+                  'Peijaiset', 'Gillingham', 'HMS Upholder', 'Mixed franking', 'Bruun\'s FFT algorithm',
+                  'In-band adjacent-channel', 'Intersection syndrome', 'Saint-Jean County, Quebec', 'Ardagh',
+                  'Uppland County', 'Timetable (disambiguation)', '4VSB', '2VSB', 'Daniel Kriegman',
+                  'Situationist Antinational', 'Tim Lander', 'Gwenllian', 'Drift migration', 'What More Can I Ask?',
+                  'Email art', 'Nicole Markotic', 'Shirlee Matheson', 'Symbolics Document Examiner', 'La Rochefoucauld',
+                  'Charles Gray', 'Gurcharan Rampuri', 'National Health Planning and Resources Development Act',
+                  'El Ausente', 'Commute', 'Richard Stevenson (poet)', 'Dan Miller', 'Norwegian Student Choral Society',
+                  'All Species Foundation', 'South Branch', 'Pariah Press', 'Hotter\'N Hell Hundred',
+                  'Obfuscated Perl Contest', 'Negrita Jayde', 'Chinese nationality', 'Consejo',
+                  'Thomas Tanner (writer)', 'Watermedia', 'Evar Saar', 'Alomancy', 'Benton County', 'Tursib', 'Gorki',
+                  'Shiroka Polyana', 'Midwest Christian Outreach', 'Adamantine Spar',
+                  'Lossless Transform Audio Compression', 'Background (astronomy)', 'Richard Wawro', 'Irma Brandeis',
+                  'Bentonville', 'Bruckner (disambiguation)', 'Tiberius Sempronius Gracchus', 'Appel', 'Smale',
+                  'Laura Recovery Center', 'Shaded-pole synchronous motor', 'Frank Houben', 'USS Anzio',
+                  'Merchandization', 'Meiklejohn Civil Liberties Institute', 'Eduard Haas', 'Sacred band',
+                  'Eddie Lֳ³pez (boxer)', 'Good Neighbour Policy (horse racing)', 'Logical topology',
+                  'Biltmore Records', 'Kinthup', 'Cֳ₪sar Rֳ¼stow', 'Dial Records', 'Gyeongbu', 'Subtle cardinal',
+                  'TimeShard', 'Gimpo Line', 'Lakeside Records', 'Freshwater shark', 'Sitwell', 'Geir Barvik',
+                  'Universal dialectic', 'Aivaras', 'Pulper', 'Larousse', 'Treatise (music)', 'Fourth Republic',
+                  'Broadcast Twelve Records', 'Schirmer Records', 'Hacִ±osman, Manyas', 'The Rockies (disambiguation)',
+                  'Bel-Air (Sanford)', 'Gyro', 'Carlea, Saskatchewan', 'Mean deviation', 'William Hearst',
+                  'Makoto Tomioka', 'Priszm', 'Ear tuft', 'Foreign Correspondents\' Club, Phnom Penh', 'Ryosuke Cohen',
+                  'Ernest Maas', 'Laplace transform applied to differential equations',
+                  'Resource Directory Description Language', 'Rinken Band', 'Tommy Solomon', 'Oriental Sports Daily',
+                  'Oscar Kjellberg', 'Akizuki Tanezane', 'Herbede', 'Nagoya, Saga', 'Chris Carter', 'Norrland County',
+                  'Gֳ¶ta', 'Unicoherent space', 'William Robert Renshaw', 'Colombeau algebra',
+                  'Change the World Without Taking Power', 'Rank (computer programming)', 'Perle',
+                  'Bank of America Plaza', 'Brahma (disambiguation)', 'Bobbin boy', 'The Secret of the Universe',
+                  'Rojam', 'Portable communications device', 'Artaxerxes', 'Anyonic Lie algebra', 'Somali',
+                  'Multimagic square', 'Wire loop game', 'Antifa', 'Crumb', 'Tropic (disambiguation)',
+                  'Hermia (Finland)', 'Bai Hua', 'Midian war', 'Baluchi', 'Kedermister Library',
+                  'Decalogue (disambiguation)', 'Sergei Ivanovich Tiulpanov', 'The Mississauga Horse',
+                  'Hicks (disambiguation)', 'Nauru Pacific Line', 'Ordinance (university)', 'Water lily',
+                  'Captain Submarine', 'Przemyֵ›l (disambiguation)', 'Robert Kite', 'Meramec', 'Richard Grosvenor',
+                  'Commie Awards', 'Kalinovka, Khomutovsky District, Kursk Oblast', 'Office of Special Investigations',
+                  'Scarcity value', 'Free floating screed', 'Sons of Poland', 'Chairman of the Board (disambiguation)',
+                  'Weak consistency', 'Maven (Scrabble)', 'Muncie', 'Shower-curtain effect', 'Product description',
+                  'Abbey of St. Jean des Vignes', 'Cummings', 'Riksdagsmusiken', 'Engel', 'Santorum (disambiguation)',
+                  'Luitgard (Frankish queen)', 'International Pentecostal Church of Christ',
+                  'Fixed-point lemma for normal functions', 'USS Bonefish', 'USS Holland', 'Peltier', 'Tollbooth',
+                  'Jack Cohen', 'Elmwood Park', 'Daarlerveen', 'Republican People\'s Party', 'United Party',
+                  'USS Alexander Hamilton', 'Succession planting', 'Jiefang Subdistrict, Zhoushan', 'Edward Hartman',
+                  'Desmond Keith Carter', 'Lynnville', 'Bible box', 'Gether', 'Operation Adler',
+                  'British-American Parliamentary Group', 'Bisbee Blue', 'Piano Sonatas Nos. 13 and 14 (Beethoven)',
+                  'Aweida', 'Agency for Nuclear Projects', 'Caguax', 'Friedrich August Berthold Nitzsch', 'Upper Weald',
+                  'Robert Atkins', 'HMS Manchester', 'Ronald Campbell', 'Carlton House desk', 'Histochemical tracer',
+                  'The Breetles', 'Papandreou', 'Grammy Award for Best New Country & Western Artist',
+                  'Socialism from below', 'Content package', 'Ostrֳ³w Island', 'Islands of Gdaֵ„sk',
+                  'Quarantine (Egan novel)', 'USS Coral Sea', 'USS Cowpens', 'USS Iwo Jima', 'USS Valley Forge',
+                  'USS Wright', 'Technique', 'Jenny Jones', 'Heronian tetrahedron', 'Ezboard', 'Otterton Mill',
+                  'HMS Flamingo', 'HMAS Stalwart', 'HMAS Swan', 'Literary Machines', 'Cayleyג€“Galt Tariff', 'Rooney',
+                  'Richard Carpenter', 'AS/400 object', 'HMS Oberon', 'USS Charlotte', 'USS Chattanooga',
+                  'Nomen mysticum', '2 mm scale', 'USS Albemarle', 'USS Archerfish', 'USS Catawba', 'Moqua Well',
+                  '51st Division', 'California 4th Grade Mission Project', 'Henri Maillardet', 'Dara Nur al-Din',
+                  'Kamel al-Kilani', 'Masaryk', 'Karzai (surname)', 'Michael Morris', 'Expert determination',
+                  'Irana Esperantisto', 'Tullio Moneta']
 
     while True:
         yield random.choice(rare_pages)
 
+
 def pull_game(gameType, imp_gen, split_gen, marge_gen, rare_gen):
     if gameType == "random":
-        return wikipedia.random(),wikipedia.random()
-    if gameType == 'impolsive':
+        return wikipedia.random(), wikipedia.random()
+    if gameType == 'impulsive':
         return next(imp_gen)
     if gameType == 'natural':
         return next(split_gen), next(marge_gen)
@@ -57,28 +289,28 @@ def pull_game(gameType, imp_gen, split_gen, marge_gen, rare_gen):
     if gameType == 'niche':
         return next(rare_gen), next(rare_gen)
 
-
     raise Exception(gameType + " is not well define")
 
 
 def parse_run(start_art, end_art, algo, forward, backward):
     fpath, bpath, fopen, bopen, total_time, depth = run(start_art, end_art, algo, forward, backward)
-    path = " -> ".join(fpath)+" | "+" -> ".join(bpath)
-    total_time = round(total_time/60,2)
-    print("  ", depth,path )
-    print("  opened from start:",fopen, "opened from end:", bopen)
-    print("  took: ", total_time , "mins")
-    return path , bopen , fopen , total_time ,depth
+    path = " -> ".join(fpath) + " | " + " -> ".join(bpath)
+    total_time = round(total_time / 60, 2)
+    print("  ", depth, path)
+    print("  opened from start:", fopen, "opened from end:", bopen)
+    print("  took: ", total_time, "mins")
+    return path, bopen, fopen, total_time, depth
 
 
 def short_test_heuristic(algo, forward, backward=None):
-    print('--------now testing heuristic', algo.__name__, 'with', forward.__name__, "and", backward.__name__, 'shortly -------------------')
+    print('--------now testing heuristic', algo.__name__, 'with', forward.__name__, "and", backward.__name__,
+          'shortly -------------------')
     print('genre: impulsive choice')
     generator = generate_popular_pages()
     for i in range(5):
         start_art, end_art = next(generator)
         print('  run from %s to %s...' % (start_art, end_art))
-        parse_run(start_art, end_art, algo, forward, backward )
+        parse_run(start_art, end_art, algo, forward, backward)
 
     print('genre: hierarchy tasks')
 
@@ -107,18 +339,20 @@ def short_test_heuristic(algo, forward, backward=None):
     print('  path between edges : run from %s to %s...' % (start_art, end_art))
     print('  ', parse_run(start_art, end_art, algo, forward, backward))
 
-#
-def extreme_test_heuristic(rounds, gameTypes, methods ):
-    print('--------now testing heuristic overnight for %s rounds, %s gameTypes and %s methods -------------------' % (str(rounds),str(len(gameTypes)),str(len(methods))))
+
+def extreme_test_heuristic(rounds, gameTypes, methods):
+    print('--------now testing heuristic overnight for %s rounds, %s gameTypes and %s methods -------------------' % (
+        str(rounds), str(len(gameTypes)), str(len(methods))))
 
     impulsive = generate_popular_pages()
     mergers = generate_mergers()
     splitters = generate_splitters()
     rare = generate_rares()
 
-    file = open("extreme_test_results"+Time.ctime().replace(' ','_').replace(':','_')+".txt", 'w', 1)
+    file = open("extreme_test_results" + time.ctime().replace(' ', '_').replace(':', '_') + ".txt", 'w', 1)
 
-    file.write('genre\talg-fHeu-bHeu\tstart_art\tend-art\tdepth\topened-src\topend-dest\topened-total\ttime\tpath\terrors\n')
+    file.write(
+        'genre\talg-fHeu-bHeu\tstart_art\tend-art\tdepth\topened-src\topend-dest\topened-total\ttime\tpath\terrors\n')
 
     for rouns in range(rounds):
         for gameType in gameTypes:
@@ -128,46 +362,100 @@ def extreme_test_heuristic(rounds, gameTypes, methods ):
 
                 algo, forward, backward = method
                 methodName = algo.__name__ + '-' + forward.__name__ + "-" + backward.__name__
-                file.write('\t'.join([gameType + ' choice' ,  methodName , start_art, end_art]))
+                printble_start_art = "".join(list(filter(lambda x: x in printable, start_art)))
+                printble_end_art = "".join(list(filter(lambda x: x in printable, end_art)))
+                file.write('\t'.join([gameType + ' choice', methodName, printble_start_art, printble_end_art]))
 
                 try:
                     print("runing %s from %s to %s" % (methodName, start_art, end_art))
                     pool = mp.Pool(processes=1)
                     single_test_thread = pool.apply_async(parse_run, args=[start_art, end_art, algo, forward, backward])
                     try:
-                        path, bopen, fopen, time, depth = single_test_thread.get(timeout=60 * 5)
-                        file.write('\t'.join(["", str(depth), str(fopen), str(bopen), str(bopen + fopen), str(time), path, '\n']))
+                        path, bopen, fopen, run_time, depth = single_test_thread.get(timeout=60 * 5)
+                        file.write('\t'.join(
+                            ["", str(depth), str(fopen), str(bopen), str(bopen + fopen), str(run_time), path, '\n']))
                         pool.close()
 
                     except mp.TimeoutError:
                         pool.terminate()
                         raise Exception('failed to work withing 5 minuets')
-
-
                 except Exception as e:
-                    file.write('\t-\t-\t-\t-\t-\t-\t'+str(e)+'\n')
+                    file.write('\t-\t-\t-\t-\t-\t-\t' + str(e) + '\n')
 
     file.close()
 
 
+def run_tests():
+    methods = []
+    methods += [(bidirectional_a_star, bfs_heuristic, bfs_heuristic)]  # bfs
+    methods += [(bidirectional_a_star, bow_heuristic, bow_heuristic)]  # bow
+    methods += [(bidirectional_a_star, language_heuristic, language_heuristic)]  # lang
+    methods += [(bidirectional_a_star, metadata_heuristic, metadata_heuristic)]  # categories
+    methods += [(bidirectional_a_star, splitter_rank_heuristic, merger_rank_heuristic)]  # better-than-dad
+    # methods += [(bidirectional_a_star, FeaturesHeuristic().features_heuristic,
+    #              FeaturesHeuristic().features_heuristic)]  # better-than-dad
+    game_types = []
+    game_types += ["impulsive"]
+    game_types += ["random"]
+    game_types += ["natural"]
+    game_types += ["niche"]
+    game_types += ["extreme"]
+    extreme_test_heuristic(3, game_types, methods)
+    print('DONE')
 
 
+def main():
+    heuristics = ["bfs_heuristic", "bow_heuristic", "metadata_heuristic", "splitter_rank_heuristic",
+                  "merger_rank_heuristic", "language_heuristic", "features_heuristic"]
+    usage = """
+    Usage: executor.py [options]
 
+    Options:
+    -s, --start                 start article
+    -e, --end                   goal article
+    -f, --forward_heuristic     heuristic to use in forward search
+    -b, --backward_heuristic    heuristic to use in backward search
+    -t --tests                  run tests only
+    """
+    parser = OptionParser(usage)
+
+    parser.add_option('-s', '--start', dest='start',
+                      default=None,
+                      help='start article')
+
+    parser.add_option('-e', '--end', dest='end', default=None,
+                      help='end article')
+
+    parser.add_option('-f', '--forward_heuristic', dest='forward_heuristic',
+                      help='forward heuristic',
+                      choices=heuristics,
+                      default='splitter_rank_heuristic')
+
+    parser.add_option('-b', '--backward_heuristic', dest='backward_heuristic',
+                      help='backward heuristic', default='merger_rank_heuristic',
+                      choices=heuristics)
+    parser.add_option("-t", "--tests", action="store_true", dest="tests")
+    options, args = parser.parse_args()
+
+    if options.tests:
+        return run_tests()
+    if options.start is None or options.end is None:
+        print("You must specify a start article and a goal article!")
+        parser.print_usage()
+        return
+    try:
+        fh = getattr(sys.modules[__name__], options.forward_heuristic)
+    except AttributeError:
+        fh = FeaturesHeuristic().features_heuristic
+    try:
+        bh = getattr(sys.modules[__name__], options.backward_heuristic)
+    except AttributeError:
+        bh = FeaturesHeuristic().features_heuristic
+    fpath, bpath, fopen, bopen, total_time, len_path = run(start=options.start, end=options.end,
+                                                                   algo=bidirectional_a_star,
+                                                                   forward_heu=fh, backward_heu=bh)
+    total_path = fpath + bpath[1:]
+    print(" --> ".join([x.replace("_", " ") for x in total_path]))
 
 if __name__ == "__main__":
-    methods = []
-    methods += [(bidirectional_a_star, bfs_heuristic, bfs_heuristic)]                             #bfs
-    methods += [(bidirectional_a_star, bow_heuristic, bow_heuristic)]                            #bow
-    methods += [(bidirectional_a_star, language_heuristic, language_heuristic)]                  #lang
-    methods += [(bidirectional_a_star, metadata_heuristic, metadata_heuristic)]                  #categories
-    methods += [(bidirectional_a_star, splitter_rank_heuristic, merger_rank_heuristic)]           #better-than-dad
-
-    gameTypes = []
-    gameTypes += ["impolsive"]
-    gameTypes += ["random"]
-    gameTypes += ["natural"]
-    gameTypes += ["niche"]
-    gameTypes += ["extreme"]
-
-    extreme_test_heuristic(100, gameTypes ,methods)
-    print('DONE')
+    main()

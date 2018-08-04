@@ -1,5 +1,3 @@
-import time
-import itertools
 from improved_wikipedia import wikipedia
 from multiprocessing.pool import ThreadPool
 from bs4 import BeautifulSoup as bs
