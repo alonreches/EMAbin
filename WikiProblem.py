@@ -52,7 +52,7 @@ class WikiProblem:
 
     def _get_chunk_of_pages(self, article_names):
         pages = wikipedia.pages(article_names)
-        print("\t", "requested:", len(article_names), "got:", len(pages))
+        # print("\t", "requested:", len(article_names), "got:", len(pages))
         return pages
 
     @staticmethod
