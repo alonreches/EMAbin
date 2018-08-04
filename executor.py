@@ -378,6 +378,7 @@ def extreme_test_heuristic(rounds, gameTypes, methods):
 
                     except mp.TimeoutError:
                         pool.terminate()
+                        pool.close()
                         raise Exception('failed to work withing 5 minuets')
                 except Exception as e:
                     file.write('\t-\t-\t-\t-\t-\t-\t' + str(e) + '\n')
