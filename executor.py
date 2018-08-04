@@ -9,7 +9,7 @@ import string
 import sys
 
 printable = set(string.printable)
-
+TIMEOUT = 60 * 5
 POPULAR_PAGES_ID = "37397829"
 from sys import argv
 
@@ -371,7 +371,7 @@ def extreme_test_heuristic(rounds, gameTypes, methods):
                     pool = mp.Pool(processes=1)
                     single_test_thread = pool.apply_async(parse_run, args=[start_art, end_art, algo, forward, backward])
                     try:
-                        path, bopen, fopen, run_time, depth = single_test_thread.get(timeout=60 * 5)
+                        path, bopen, fopen, run_time, depth = single_test_thread.get(timeout=TIMEOUT)
                         file.write('\t'.join(
                             ["", str(depth), str(fopen), str(bopen), str(bopen + fopen), str(run_time), path, '\n']))
                         pool.close()
@@ -379,7 +379,7 @@ def extreme_test_heuristic(rounds, gameTypes, methods):
                     except mp.TimeoutError:
                         pool.terminate()
                         pool.close()
-                        raise Exception('failed to work withing 5 minuets')
+                        raise Exception('failed to work withing %s minuets' % str(TIMEOUT/60))
                 except Exception as e:
                     file.write('\t-\t-\t-\t-\t-\t-\t' + str(e) + '\n')
 

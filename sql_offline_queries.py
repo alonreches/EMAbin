@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 
 # static SQL assistance #
@@ -55,7 +56,7 @@ def pull_rows(cursor, query, rownum=1):
     return result
 
 
-DB_PATH = '..\\sdow.sqlite'
+DB_PATH = os.path.join("..", 'sdow.sqlite')
 
 
 # encapsulate Article object. keep its id and make a nice & simple print

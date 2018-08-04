@@ -1,10 +1,11 @@
+import os
 from sklearn.feature_extraction.text import CountVectorizer
 from scipy.spatial import distance
 import json
 import wikipedia
 from WikiProblem import WikiProblem
 import util
-from sql_offline_queries import *
+from sql_offline_queries import OfflineWikiProblem
 import time
 from executor import DEBUG
 INF = 5000000
@@ -270,14 +271,15 @@ class FeaturesHeuristic:
             for feature in FeaturesHeuristic.features[i]:
                 texts_dict[feature] = wikipedia.page(feature).content
             texts_json = json.dumps(texts_dict)
-            f = open("feature_articles\\" + FeaturesHeuristic.features_names[i] + "_feature_texts.json", 'w')
+            f = open(os.path.join("feature_articles", FeaturesHeuristic.features_names[i] + "_feature_texts.json"), 'w')
             f.write(texts_json)
             f.close()
 
     def _text_loader(self):
         if len(self.all_texts) == 0:
             for i in range(len(self.features)):
-                f = open("feature_articles\\" + FeaturesHeuristic.features_names[i] + "_feature_texts.json", 'r')
+                f = open(os.path.join("feature_articles", FeaturesHeuristic.features_names[i] + "_feature_texts.json"),
+                         'r')
                 self.all_texts.update(json.load(f))
 
     def _article_to_vec(self, article):
