@@ -8,6 +8,7 @@ import util
 from sql_offline_queries import OfflineWikiProblem
 import time
 from executor import DEBUG
+import random
 INF = 5000000
 
 
@@ -66,6 +67,10 @@ def base_search(problem, fringe, generator=False, backwards=False):
 
 def null_heuristic(node, problem=None):
     return 0
+
+
+def random_heuristic(node, problem=None):
+    return random.random()
 
 
 def bfs_heuristic(node, problem=None):
@@ -283,13 +288,14 @@ class FeaturesHeuristic:
                 self.all_texts.update(json.load(f))
 
     def _article_to_vec(self, article):
-        article_text = article.get_text()
+        article_text = article.content
         vec = []
         for cord in self.features:
             scores = []
             for feature in cord:
                 scores.append(self._get_score(article_text, self.all_texts[feature]))
-            vec.append(sum(scores) / len(scores))
+            # vec.append(sum(scores) / len(scores))
+            vec.append(min(scores))
         sum_vec = sum(vec)
         if sum_vec != 0 and DEBUG:
             print_vec = [cord / sum_vec for cord in vec]
@@ -312,7 +318,7 @@ class FeaturesHeuristic:
 
 
 def run(start, end, algo, forward_heu, backward_heu):
-    offline_heuristics = (bfs_heuristic, merger_rank_heuristic, splitter_rank_heuristic)
+    offline_heuristics = (bfs_heuristic, merger_rank_heuristic, splitter_rank_heuristic, random_heuristic)
 
     if forward_heu in offline_heuristics:
         problem_forward = OfflineWikiProblem(start, end)

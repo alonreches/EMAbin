@@ -48,6 +48,7 @@ class WikiProblem:
             threads.append(async_result)
         for thread in threads:
             wikipages.extend(thread.get())
+        pool.close()
         return wikipages
 
     def _get_chunk_of_pages(self, article_names):

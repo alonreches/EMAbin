@@ -389,25 +389,27 @@ def extreme_test_heuristic(rounds, gameTypes, methods):
 def run_tests():
     methods = []
     methods += [(bidirectional_a_star, bfs_heuristic, bfs_heuristic)]  # bfs
+    methods += [(bidirectional_a_star, random_heuristic, random_heuristic)]  # random
     methods += [(bidirectional_a_star, bow_heuristic, bow_heuristic)]  # bow
     methods += [(bidirectional_a_star, language_heuristic, language_heuristic)]  # lang
     methods += [(bidirectional_a_star, metadata_heuristic, metadata_heuristic)]  # categories
     methods += [(bidirectional_a_star, splitter_rank_heuristic, merger_rank_heuristic)]  # better-than-dad
-    # methods += [(bidirectional_a_star, FeaturesHeuristic().features_heuristic,
-    #              FeaturesHeuristic().features_heuristic)]  # better-than-dad
+    methods += [(bidirectional_a_star, FeaturesHeuristic().features_heuristic,
+                 FeaturesHeuristic().features_heuristic)]  # better-than-dad
     game_types = []
     game_types += ["impulsive"]
     game_types += ["random"]
     game_types += ["natural"]
     game_types += ["niche"]
     game_types += ["extreme"]
-    extreme_test_heuristic(3, game_types, methods)
+    extreme_test_heuristic(1000, game_types, methods)
     print('DONE')
 
 
 def main():
     heuristics = ["bfs_heuristic", "bow_heuristic", "metadata_heuristic", "splitter_rank_heuristic",
-                  "merger_rank_heuristic", "language_heuristic", "features_heuristic"]
+                  "merger_rank_heuristic", "language_heuristic", "features_heuristic",
+                  "random_heuristic"]
     usage = """
     Usage: executor.py [options]
 
