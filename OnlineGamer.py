@@ -1,3 +1,7 @@
+##############################################################################
+# this script uses selenium in order to play online on https://thewikigame.com
+# it only executes code from WikiSolver
+##############################################################################
 from sql_offline_queries import DB_PATH
 from WikiSolver import *
 from selenium import webdriver

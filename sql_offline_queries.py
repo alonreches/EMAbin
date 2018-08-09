@@ -1,3 +1,8 @@
+##################################################################################
+# this module implements the OfflineWikiProblem which serves the problem interface
+# using an offline DB that can be downloaded from:
+# https://drive.google.com/open?id=1kf_FEVSy6z_ACcL7kqop9a6LCXAP8jKB
+##################################################################################
 import sqlite3
 import os
 

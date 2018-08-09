@@ -1,3 +1,7 @@
+###################################################################################
+# this file runs the code. it allows to run a single search with a single heuristic
+# or run a full test that writes results to a tsv file
+###################################################################################
 from optparse import OptionParser
 from improved_wikipedia import wikipedia
 import random
@@ -390,12 +394,13 @@ def run_tests():
     methods = []
     methods += [(bidirectional_a_star, bfs_heuristic, bfs_heuristic)]  # bfs
     methods += [(bidirectional_a_star, random_heuristic, random_heuristic)]  # random
+    methods += [(a_star_search, random_heuristic, random_heuristic)]  # random
     methods += [(bidirectional_a_star, bow_heuristic, bow_heuristic)]  # bow
     methods += [(bidirectional_a_star, language_heuristic, language_heuristic)]  # lang
     methods += [(bidirectional_a_star, metadata_heuristic, metadata_heuristic)]  # categories
     methods += [(bidirectional_a_star, splitter_rank_heuristic, merger_rank_heuristic)]  # better-than-dad
     methods += [(bidirectional_a_star, FeaturesHeuristic().features_heuristic,
-                 FeaturesHeuristic().features_heuristic)]  # better-than-dad
+                 FeaturesHeuristic().features_heuristic)]  # features-heuristic
     game_types = []
     game_types += ["impulsive"]
     game_types += ["random"]

@@ -1,3 +1,8 @@
+###########################################################################
+# this module implements the WikiProblem which serves the problem interface
+# using the online wikipedia API. it gives more data (text, categories etc.)
+# but is slower than the offline interface
+###########################################################################
 from improved_wikipedia import wikipedia
 from multiprocessing.pool import ThreadPool
 from bs4 import BeautifulSoup as bs

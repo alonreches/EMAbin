@@ -1,3 +1,10 @@
+#######################################################################
+# this module implements all solving mechanisms
+# it includes a node class (used for tracking depth and path of search)
+# a "base search" that is used for running all A* variations
+# and all heuristics used in our project
+#######################################################################
+
 import os
 from sklearn.feature_extraction.text import CountVectorizer
 from scipy.spatial import distance
@@ -13,6 +20,9 @@ INF = 5000000
 
 
 class Node:
+    """
+    node class wrapping the articles. it is needed for tracking depth and path of states
+    """
     def __init__(self, article, parent=None, backwards=False):
         self.backwards = backwards
         self.article = article
@@ -46,6 +56,9 @@ class Node:
 
 
 def base_search(problem, fringe, generator=False, backwards=False):
+    """
+    basic search algorithm to run bfs and A* variations
+    """
     fringe.push(Node(problem.get_start_state(), backwards=backwards))
     seen = set()
     while not fringe.isEmpty():
@@ -70,10 +83,16 @@ def null_heuristic(node, problem=None):
 
 
 def random_heuristic(node, problem=None):
+    """
+    a random heuristic gives a random score
+    """
     return random.random()
 
 
 def bfs_heuristic(node, problem=None):
+    """
+    makes the base search run as bfs
+    """
     return node.depth
 
 
@@ -88,6 +107,16 @@ def a_star_search(problem_forward, problem_backward=None, heuristic_forward=null
 
 def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=null_heuristic,
                          heuristic_backward=null_heuristic):
+    """
+    this function run A* in two directions. start to end and end to start.
+    every every iteration it compares the nodes in the fringes, and if an intersection is
+    found the function calculates the path
+    :param problem_forward: problem running start->end
+    :param problem_backward: problem running end->start
+    :param heuristic_forward: heuristic to use in forward search
+    :param heuristic_backward: heuristic to use in backward search
+    :return:
+    """
     forward_generator = base_search(problem_forward,
                                     util.PriorityQueueWithFunction(
                                          lambda node: heuristic_forward(node, problem_forward)),
@@ -131,6 +160,9 @@ def bidirectional_a_star(problem_forward, problem_backward, heuristic_forward=nu
 
 
 def language_heuristic(state, problem=None):
+    """
+    heuristic giving a score by the number of languages the article appears in.
+    """
     num_of_languages = state.article.num_of_language / 10
     parent_num_of_languages = 1 if state.parent is None else state.parent.article.num_of_language / 10
     denominator = num_of_languages
@@ -169,6 +201,10 @@ def _category_filter(category):
 
 
 def metadata_heuristic(state, problem=None):
+    """
+    a heuristic giving a score according to the similiratiy in catefories between goal
+    and current node. it filters out "bad" categories using the _category_filter function
+    """
     curr_cats = list(filter(_category_filter, state.article.categories))
     target_cats = problem.get_goal_state().categories
     intersection = list(set(curr_cats) & set(target_cats))
@@ -180,6 +216,11 @@ def metadata_heuristic(state, problem=None):
 
 
 def splitter_rank_heuristic(state, problem=None):
+    """
+    gives a score according the how many outgoing links the node has,
+    and what is the improvement compared to the parent
+    used in a forward search.
+    """
     numerator = 1 if state.parent is None else problem.splitter_rank(state.parent.article)
     denominator = problem.splitter_rank(state.article)
     if denominator == 0 or denominator > 500:
@@ -190,6 +231,11 @@ def splitter_rank_heuristic(state, problem=None):
 
 
 def merger_rank_heuristic(state, problem=None):
+    """
+    gives a score according the how many incoming links the node has,
+    and what is the improvement compared to the parent
+    used in a backward search.
+    """
     numerator = 1 if state.parent is None else problem.merger_rank(state.parent.article)
     denominator = problem.merger_rank(state.article)
     if denominator == 0 or denominator > 800:
@@ -200,6 +246,11 @@ def merger_rank_heuristic(state, problem=None):
 
 
 def bow_heuristic(state, problem=None):
+    """
+    bag of words heuristic.
+    builds a vector representing the shared vocabulary,
+    and calculates euclidean distance
+    """
     vectorizer = CountVectorizer()
     goal_text = problem.get_goal_state().get_text()
     current_text = state.article.get_text()
@@ -209,6 +260,9 @@ def bow_heuristic(state, problem=None):
 
 
 class FeaturesHeuristic:
+    """
+    this class implements the feature heuristic that is explained in the report
+    """
     math_and_science = ["arithmetic", "calculus", "combinatorics", "game theory", "geometry ", "graph theory",
                         "group theory", "linear algebra", "mathematical logic", "model theory",
                         "number theory", "optimization", "order theory", "probability", "set theory",
@@ -318,6 +372,16 @@ class FeaturesHeuristic:
 
 
 def run(start, end, algo, forward_heu, backward_heu):
+    """
+    execution function. this function allows the user to run any combination of algorithm and heuristic
+    in the same manner
+    :param start: name of start article
+    :param end: name of goal article
+    :param algo: search algorithm to use
+    :param forward_heu: heuristic for forward search
+    :param backward_heu: heuristic for backward search
+    :return:
+    """
     offline_heuristics = (bfs_heuristic, merger_rank_heuristic, splitter_rank_heuristic, random_heuristic)
 
     if forward_heu in offline_heuristics:
