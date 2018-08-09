@@ -17,6 +17,8 @@ import time
 from executor import DEBUG
 import random
 INF = 5000000
+INCOMING_LINKS_THRESH = 800
+OUTGOING_LINKS_THRESH = 500
 
 
 class Node:
@@ -223,7 +225,7 @@ def splitter_rank_heuristic(state, problem=None):
     """
     numerator = 1 if state.parent is None else problem.splitter_rank(state.parent.article)
     denominator = problem.splitter_rank(state.article)
-    if denominator == 0 or denominator > 500:
+    if denominator == 0 or denominator > OUTGOING_LINKS_THRESH:
         return INF
     if state.parent is not None and DEBUG:
         print(" --> ".join([x.article.title for x in state.get_path()]))
@@ -238,7 +240,7 @@ def merger_rank_heuristic(state, problem=None):
     """
     numerator = 1 if state.parent is None else problem.merger_rank(state.parent.article)
     denominator = problem.merger_rank(state.article)
-    if denominator == 0 or denominator > 800:
+    if denominator == 0 or denominator > INCOMING_LINKS_THRESH:
         return INF
     if state.parent is not None and DEBUG:
         print(" <-- ".join([x.article.title for x in state.get_path()]))
